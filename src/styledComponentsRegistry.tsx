@@ -1,10 +1,11 @@
 "use client";
 
-import React, {useState} from "react";
+import {useState} from "react";
+import type {ReactNode} from "react";
 import {useServerInsertedHTML} from "next/navigation";
 import {ServerStyleSheet, StyleSheetManager} from "styled-components";
 
-export default function StyledComponentsRegistry({children}: {children: React.ReactNode}) {
+export default function StyledComponentsRegistry({children}: {children: ReactNode}) {
   const [styledComponentsStyleSheet] = useState(() => new ServerStyleSheet());
 
   // 서버 사이드 렌더링 시 스타일을 주입
