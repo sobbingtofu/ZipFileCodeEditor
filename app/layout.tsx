@@ -1,4 +1,5 @@
 import type {Metadata} from "next";
+import type {ReactNode} from "react";
 import "./globals.css";
 import StyledComponentsRegistry from "@/src/styledComponentsRegistry";
 
@@ -10,11 +11,13 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="en">
-      <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+      <body>
+        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+      </body>
     </html>
   );
 }
