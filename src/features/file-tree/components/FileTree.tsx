@@ -15,8 +15,10 @@ function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
   const activeFilePath = useEditorStore((state) => state.activeFilePath);
   const hasNodes = useMemo(() => fileTree.length > 0, [fileTree]);
+
   const [isHovering, setIsHovering] = useState(false);
   const [isZipAlertOpen, setIsZipAlertOpen] = useState(false);
+  const [uploadErrMsg, setUploadErrMsg] = useState("");
 
   const {handleZipFileUpload} = useHandleZipUpload();
 
@@ -39,8 +41,14 @@ function FileTree() {
 
     const isUploaded = await handleZipFileUpload(droppedFile);
     if (!isUploaded.success) {
+      setUploadErrMsg(isUploaded.error ?? "Zip 파일 업로드 중 오류가 발생했습니다.");
       setIsZipAlertOpen(true);
     }
+  };
+
+  const handleCloseZipAlert = () => {
+    setIsZipAlertOpen(false);
+    setUploadErrMsg("");
   };
 
   return (
@@ -93,7 +101,7 @@ function FileTree() {
           ))}
         </S.TreeScrollArea>
       )}
-      <ZipAlertModal isOpen={isZipAlertOpen} onClose={() => setIsZipAlertOpen(false)} />
+      <ZipAlertModal isOpen={isZipAlertOpen} onClose={handleCloseZipAlert} errorMessage={uploadErrMsg} />
     </S.TreeContainer>
   );
 }
