@@ -2,6 +2,7 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {isZipFile, parseZipFileToTree} from "../logic/zipService";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {findFirstFileNode} from "../../file-tree";
+import {ChangeEvent, DragEvent} from "react";
 
 function useHandleZipUpload() {
   const setFileTree = useFileStore((state) => state.setFileTree);
@@ -34,8 +35,35 @@ function useHandleZipUpload() {
     }
   };
 
+  const handleZipFileUploadBtnClick = async (event: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
+    const uploadedFile = event.target.files?.[0];
+    if (!uploadedFile) {
+      return;
+    }
+    try {
+      await handleZipFileUpload(uploadedFile);
+    } finally {
+      // 재업로드 안정성 보장
+      event.target.value = "";
+    }
+  };
+
+  const handleZipFileDrop = async (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+
+    const droppedFile = event.dataTransfer.files?.[0];
+    if (!droppedFile) {
+      return;
+    }
+
+    const uploadResult = await handleZipFileUpload(droppedFile);
+    return uploadResult;
+  };
+
   return {
     handleZipFileUpload,
+    handleZipFileUploadBtnClick,
+    handleZipFileDrop,
   };
 }
 

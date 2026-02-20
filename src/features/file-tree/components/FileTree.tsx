@@ -20,7 +20,7 @@ function FileTree() {
   const [isZipAlertOpen, setIsZipAlertOpen] = useState(false);
   const [uploadErrMsg, setUploadErrMsg] = useState("");
 
-  const {handleZipFileUpload} = useHandleZipUpload();
+  const {handleZipFileDrop} = useHandleZipUpload();
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -31,17 +31,10 @@ function FileTree() {
     event.preventDefault();
   };
 
-  const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-
-    const droppedFile = event.dataTransfer.files?.[0];
-    if (!droppedFile) {
-      return;
-    }
-
-    const isUploaded = await handleZipFileUpload(droppedFile);
-    if (!isUploaded.success) {
-      setUploadErrMsg(isUploaded.error ?? "Zip 파일 업로드 중 오류가 발생했습니다.");
+  const executeDropAndProcessResult = async (event: DragEvent<HTMLDivElement>) => {
+    const result = await handleZipFileDrop(event);
+    if (result && !result.success) {
+      setUploadErrMsg(result.error || "알 수 없는 오류가 발생했습니다.");
       setIsZipAlertOpen(true);
     }
   };
@@ -58,7 +51,7 @@ function FileTree() {
         <S.EmptyTreeContainer
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
+          onDrop={executeDropAndProcessResult}
           $isHovering={isHovering}
           onMouseOver={() => {
             if (!hasNodes) {
@@ -83,9 +76,6 @@ function FileTree() {
       )}
       {hasNodes && (
         <S.TreeScrollArea
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
           $isHovering={isHovering}
           onMouseOver={() => {
             if (hasNodes) {
