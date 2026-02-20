@@ -9,19 +9,19 @@ import {getLanguageByFilePath} from "../logic/editorLogics";
 interface UseMonacoEditorSyncProps {
   activeFilePath: string | null;
   activeFile: FileNode | null;
-  onFlushContentToStoreChange: (flushContentToStore: () => void) => void;
+  onFlushMonacoToZustandByFilePathChange: (flushMonacoToZustandByFilePath: () => void) => void;
   autoSave?: boolean;
 }
 
 interface UseMonacoEditorSyncResult {
   monacoHostRef: React.RefObject<HTMLDivElement | null>;
-  flushContentToStore: (targetPath?: string) => void;
+  flushMonacoToZustandByFilePath: (targetPath?: string) => void;
 }
 
 function useMonacoEditorSync({
   activeFilePath,
   activeFile,
-  onFlushContentToStoreChange,
+  onFlushMonacoToZustandByFilePathChange,
   autoSave = false,
 }: UseMonacoEditorSyncProps): UseMonacoEditorSyncResult {
   const updateFileContentByPath = useFileStore((state) => state.updateFileContentByPath);
@@ -31,32 +31,21 @@ function useMonacoEditorSync({
   const editorRef = useRef<MonacoEditor.editor.IStandaloneCodeEditor | null>(null);
   const modelCacheRef = useRef<Map<string, MonacoEditor.editor.ITextModel>>(new Map());
   const activeModelPathRef = useRef<string | null>(null);
-  const dirtyTextCacheRef = useRef<Map<string, string>>(new Map());
   const flushDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
    * 현재 편집 중인 모델의 내용을 Zustand 스토어에 저장하는 함수
-   * - 입력 중에는 Zustand를 업데이트하지 않고 Monaco 내부 상태를 사용, 편집 중인 내용은 dirtyTextCacheRef에 저장
+   * - 입력 중에는 Zustand를 업데이트하지 않고 Monaco 내부 상태를 사용
    * - 탭 전환/저장 시점에만 Zustand로 내용을 커밋
    * - 편집 중인 내용이 있을 경우 이를 우선적으로 저장, 편집 중인 내용이 없을 경우 Monaco 모델의 내용을 저장
    * - 특정 파일 경로를 지정하면 해당 파일의 내용을 저장, 지정하지 않으면 현재 활성 모델의 내용을 저장
    */
-  const flushContentToStore = useCallback(
+  const flushMonacoToZustandByFilePath = useCallback(
     (targetPath?: string) => {
       const pathToFlush = targetPath ?? activeModelPathRef.current;
       if (!pathToFlush) {
         return;
       }
-
-      const cachedDirtyValue = dirtyTextCacheRef.current.get(pathToFlush);
-
-      if (typeof cachedDirtyValue === "string") {
-        // 편집 중인 내용이 있을 경우 이를 zustand에 반영하고 dirty cache에서 해당 항목 제거
-        updateFileContentByPath(pathToFlush, cachedDirtyValue);
-        dirtyTextCacheRef.current.delete(pathToFlush);
-        return;
-      }
-
       const model = modelCacheRef.current.get(pathToFlush);
       if (model) {
         // 편집 중인 내용이 없고 Monaco 모델이 존재하는 경우 모델의 내용을 zustand에 반영
@@ -67,8 +56,8 @@ function useMonacoEditorSync({
   );
 
   /**
-   * 특정 파일 경로에 대한 flushContentToStore 함수를 일정 시간 지연(debounce) 후 실행하는 함수
-   * - 편집 도중에 너무 자주 flushContentToStore가 호출되는 것을 방지하여 성능 최적화
+   * 특정 파일 경로에 대한 flushMonacoToZustandByFilePath 함수를 일정 시간 지연(debounce) 후 실행하는 함수
+   * - 편집 도중에 너무 자주 flushMonacoToZustandByFilePath가 호출되는 것을 방지하여 성능 최적화
    * - 5초 동안 추가 편집이 없으면 자동으로 저장 실행
    * - 파일 경로를 지정하지 않으면 현재 활성 모델의 내용을 저장
    */
@@ -80,10 +69,10 @@ function useMonacoEditorSync({
 
       flushDebounceTimerRef.current = setTimeout(() => {
         console.log(`자동 저장 실행: ${targetPath}`);
-        flushContentToStore(targetPath);
+        flushMonacoToZustandByFilePath(targetPath);
       }, 5000);
     },
-    [flushContentToStore],
+    [flushMonacoToZustandByFilePath],
   );
 
   /**
@@ -107,14 +96,14 @@ function useMonacoEditorSync({
     [],
   );
 
-  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 flushContentToStore 함수 전달
+  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 flushMonacoToZustandByFilePath 함수 전달
   useEffect(() => {
-    onFlushContentToStoreChange(flushContentToStore);
+    onFlushMonacoToZustandByFilePathChange(flushMonacoToZustandByFilePath);
 
     return () => {
-      onFlushContentToStoreChange(() => {});
+      onFlushMonacoToZustandByFilePathChange(() => {});
     };
-  }, [onFlushContentToStoreChange, flushContentToStore]);
+  }, [onFlushMonacoToZustandByFilePathChange, flushMonacoToZustandByFilePath]);
 
   // Monaco Editor 초기화 및 정리
   useEffect(() => {
@@ -138,23 +127,6 @@ function useMonacoEditorSync({
         theme: "vs-dark",
       });
 
-      // 편집 내용이 변경될 때마다 dirtyTextCacheRef에 편집 중인 내용을 저장
-      // (Zustand 스토어 업데이트 빈도를 줄이기 위함임)
-      editor.onDidChangeModelContent(() => {
-        const currentPath = activeModelPathRef.current;
-        const activeModel = editor.getModel();
-        if (!currentPath || !activeModel) {
-          return;
-        }
-
-        dirtyTextCacheRef.current.set(currentPath, activeModel.getValue());
-
-        if (autoSave) {
-          // 디바운스 예약 걸어두기
-          scheduleFlushForPath(currentPath);
-        }
-      });
-
       editorRef.current = editor;
     };
 
@@ -165,16 +137,15 @@ function useMonacoEditorSync({
         clearTimeout(flushDebounceTimerRef.current);
       }
 
-      flushContentToStore();
+      flushMonacoToZustandByFilePath();
       editorRef.current?.dispose();
       editorRef.current = null;
 
       modelCacheRef.current.forEach((model) => model.dispose());
       modelCacheRef.current.clear();
-      dirtyTextCacheRef.current.clear();
       activeModelPathRef.current = null;
     };
-  }, [flushContentToStore, scheduleFlushForPath]);
+  }, [flushMonacoToZustandByFilePath, scheduleFlushForPath]);
 
   // 선택된 파일이 변경될 때마다 해당 파일에 맞는 Monaco 모델로 에디터를 업데이트
   useEffect(() => {
@@ -191,7 +162,7 @@ function useMonacoEditorSync({
         clearTimeout(flushDebounceTimerRef.current);
       }
 
-      flushContentToStore(previousActivePath);
+      flushMonacoToZustandByFilePath(previousActivePath);
     }
 
     if (!activeFilePath || !activeFile || activeFile.type !== "file" || activeFile.isBinary) {
@@ -201,15 +172,10 @@ function useMonacoEditorSync({
     }
 
     const model = getOrCreateModel(monaco, activeFile);
-    const dirtyValue = dirtyTextCacheRef.current.get(activeFile.path);
-
-    if (typeof dirtyValue === "string" && dirtyValue !== model.getValue()) {
-      model.setValue(dirtyValue);
-    }
 
     editor.setModel(model);
     activeModelPathRef.current = activeFile.path;
-  }, [activeFilePath, activeFile, getOrCreateModel, flushContentToStore]);
+  }, [activeFilePath, activeFile, getOrCreateModel, flushMonacoToZustandByFilePath]);
 
   // Ctrl/Cmd + S 입력 시 브라우저 기본 저장 동작을 막고 현재 편집 내용을 Zustand에 반영
   useEffect(() => {
@@ -226,7 +192,7 @@ function useMonacoEditorSync({
         clearTimeout(flushDebounceTimerRef.current);
       }
 
-      flushContentToStore();
+      flushMonacoToZustandByFilePath();
     };
 
     window.addEventListener("keydown", handleSaveShortcut);
@@ -234,11 +200,11 @@ function useMonacoEditorSync({
     return () => {
       window.removeEventListener("keydown", handleSaveShortcut);
     };
-  }, [flushContentToStore]);
+  }, [flushMonacoToZustandByFilePath]);
 
   return {
     monacoHostRef,
-    flushContentToStore,
+    flushMonacoToZustandByFilePath,
   };
 }
 

@@ -10,7 +10,7 @@ import {MonacoEditorContainer} from "@/src/features/monaco-editor";
 export default function Home() {
   const bodyLayoutRef = useRef<HTMLDivElement>(null);
 
-  const [flushContentToStore, setFlushContentToStore] = useState<() => void>(() => () => {});
+  const [flushMonacoToZustandByFilePath, setFlushMonacoToZustandByFilePath] = useState<() => void>(() => () => {});
 
   const {leftPanelWidth, handleResizeStart} = useHandleTreeContainerWidth({bodyLayoutRef});
 
@@ -19,11 +19,11 @@ export default function Home() {
 
   const {handleZipFileInputChange} = useHandleZipUpload();
 
-  const handleFlushContentToStoreChange = useCallback((flush: () => void) => {
-    setFlushContentToStore(() => flush);
+  const handleFlushMonacoToZustandByFilePathChange = useCallback((flush: () => void) => {
+    setFlushMonacoToZustandByFilePath(() => flush);
   }, []);
 
-  const handleDownloadZip = useHandleZipDownload({flushContentToStore});
+  const handleDownloadZip = useHandleZipDownload({flushMonacoToZustandByFilePath});
 
   return (
     <S.Main>
@@ -47,7 +47,7 @@ export default function Home() {
         <S.PanelResizer onMouseDown={handleResizeStart} />
 
         <S.RightPanel>
-          <MonacoEditorContainer onFlushContentToStoreChange={handleFlushContentToStoreChange} />
+          <MonacoEditorContainer onFlushMonacoToZustandByFilePathChange={handleFlushMonacoToZustandByFilePathChange} />
         </S.RightPanel>
       </S.BodyLayout>
     </S.Main>

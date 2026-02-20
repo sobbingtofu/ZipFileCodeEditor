@@ -13,10 +13,10 @@ import {useMonacoEditorSync} from "@/src/features/monaco-editor";
 import Image from "next/image";
 
 interface MonacoEditorContainerEditorContainerProps {
-  onFlushContentToStoreChange: (flushContentToStore: () => void) => void;
+  onFlushMonacoToZustandByFilePathChange: (flushMonacoToZustandByFilePath: () => void) => void;
 }
 
-function MonacoEditorContainer({onFlushContentToStoreChange}: MonacoEditorContainerEditorContainerProps) {
+function MonacoEditorContainer({onFlushMonacoToZustandByFilePathChange}: MonacoEditorContainerEditorContainerProps) {
   const fileTree = useFileStore((state) => state.fileTree);
 
   const activeFilePath = useEditorStore((state) => state.activeFilePath);
@@ -32,10 +32,10 @@ function MonacoEditorContainer({onFlushContentToStoreChange}: MonacoEditorContai
     return findFileNodeInTree(fileTree, activeFilePath);
   }, [fileTree, activeFilePath]);
 
-  const {monacoHostRef, flushContentToStore} = useMonacoEditorSync({
+  const {monacoHostRef, flushMonacoToZustandByFilePath} = useMonacoEditorSync({
     activeFilePath,
     activeFile,
-    onFlushContentToStoreChange,
+    onFlushMonacoToZustandByFilePathChange,
   });
 
   const handleTabClick = (filePath: string) => {
@@ -43,14 +43,14 @@ function MonacoEditorContainer({onFlushContentToStoreChange}: MonacoEditorContai
       return;
     }
 
-    flushContentToStore(activeFilePath ?? undefined);
+    // flushMonacoToZustandByFilePath(activeFilePath ?? undefined);
     setActiveFilePath(filePath);
   };
 
   const handleTabClose = (event: MouseEvent<HTMLButtonElement>, filePath: string) => {
     event.stopPropagation();
 
-    flushContentToStore(filePath);
+    flushMonacoToZustandByFilePath(filePath);
     closeFileTab(filePath);
   };
 
