@@ -6,11 +6,13 @@ import {createPortal} from "react-dom";
 import * as S from "@/src/features/custom-modal/components/CustomModal.styles";
 
 type CustomModalProps = {
-  modalType: "alert" | "confirm";
+  modalType: "alert" | "confirm" | "save";
   isOpen: boolean;
   onClose: () => void;
   errorMessage?: string;
   onConfirm?: () => void;
+  onSave?: () => void;
+  onNotSave?: () => void;
 };
 
 export function CustomModal({
@@ -19,6 +21,8 @@ export function CustomModal({
   onClose,
   errorMessage = "오류가 발생했습니다.",
   onConfirm,
+  onSave,
+  onNotSave,
 }: CustomModalProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -50,6 +54,19 @@ export function CustomModal({
             </S.ModalButton>
             <S.ModalButton type="button" onClick={onConfirm}>
               확인
+            </S.ModalButton>
+          </>
+        )}
+        {modalType == "save" && (
+          <>
+            <S.ModalButton type="button" onClick={onSave}>
+              저장
+            </S.ModalButton>
+            <S.ModalButton type="button" onClick={onNotSave}>
+              저장하지 않음
+            </S.ModalButton>
+            <S.ModalButton type="button" onClick={onClose}>
+              취소
             </S.ModalButton>
           </>
         )}
