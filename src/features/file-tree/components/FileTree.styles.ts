@@ -18,7 +18,7 @@ export const TreeHeader = styled.div`
 
 export const EmptyTreeContainer = styled.div<{$isHovering: boolean}>`
   overflow: auto;
-  height: 100%;
+  flex: 1;
   padding: 6px 4px 10px;
   cursor: pointer;
 

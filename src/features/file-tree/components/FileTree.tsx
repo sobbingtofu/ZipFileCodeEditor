@@ -51,7 +51,7 @@ function FileTree() {
       {!hasNodes && (
         <>
           <HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
-          <label htmlFor="zip-upload-input" style={{height: "100%", display: "block"}}>
+          <label htmlFor="zip-upload-input" style={{height: "100%", display: "flex", flexDirection: "column"}}>
             <S.EmptyTreeContainer
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
