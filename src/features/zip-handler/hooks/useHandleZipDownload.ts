@@ -24,4 +24,4 @@ function useHandleZipDownload({flushContentToStore}: {flushContentToStore: () =>
   return handleDownloadZip;
 }
 
-export default useHandleZipDownload;
+export {useHandleZipDownload};

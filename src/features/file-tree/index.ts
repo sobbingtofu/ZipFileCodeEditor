@@ -1,3 +1,3 @@
 export * from "./components/FileTree";
-export * from "./components/FileNode";
+export * from "./components/FileTreeNode";
 export * from "./logic/findFirstFileNode";

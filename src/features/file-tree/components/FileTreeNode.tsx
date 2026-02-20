@@ -46,4 +46,4 @@ const FileTreeNode = memo(function FileTreeNode({node, depth, activeFilePath}: F
   );
 });
 
-export default FileTreeNode;
+export {FileTreeNode};
