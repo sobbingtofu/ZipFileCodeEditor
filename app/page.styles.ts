@@ -11,8 +11,8 @@ export const Main = styled.main`
 export const TopBar = styled.header`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 48px;
   padding: 10px 14px;
   border-bottom: 1px solid #2a2a2a;
   background: #171717;
@@ -41,7 +41,6 @@ export const ZipUploadLabel = styled.label`
   cursor: pointer;
   font-size: 13px;
   background: #252525;
-
   &:hover {
     background: #2f2f2f;
   }

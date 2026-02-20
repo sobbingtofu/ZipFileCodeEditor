@@ -5,11 +5,11 @@ import type {MouseEvent} from "react";
 import {FileNode} from "@/src/types/fileType";
 import {findFileNodeInTree, useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
-import {useMonacoEditorSync} from "../hooks/useMonacoEditorSync";
 
 import * as S from "./MonacoEditorContainer.styles";
 
 import {getTabName} from "../logic/editorLogics";
+import {useMonacoEditorSync} from "@/src/features/monaco-editor";
 
 interface MonacoEditorContainerEditorContainerProps {
   onFlushContentToStoreChange: (flushContentToStore: () => void) => void;
@@ -87,4 +87,4 @@ function MonacoEditorContainer({onFlushContentToStoreChange}: MonacoEditorContai
   );
 }
 
-export default MonacoEditorContainer;
+export {MonacoEditorContainer};

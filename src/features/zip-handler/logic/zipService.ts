@@ -11,6 +11,16 @@ const isBinaryImageFile = (filePath: string): boolean => {
   return [...IMAGE_EXTENSION_SET].some((extension) => lowerCasePath.endsWith(extension));
 };
 
+const ZIP_MIME_TYPES = new Set(["application/zip", "application/x-zip-compressed", "multipart/x-zip"]);
+
+/** - 파일이 Zip 파일인지 검사
+ *  - 확장자 검사와 MIME 타입 검사를 모두 수행하여 신뢰성 향상
+ */
+export const isZipFile = (file: File): boolean => {
+  const lowerCaseFileName = file.name.toLowerCase();
+  return lowerCaseFileName.endsWith(".zip") || ZIP_MIME_TYPES.has(file.type);
+};
+
 /** 노드 ID 생성 */
 const createNodeId = (nodePath: string): string => `node:${nodePath}`;
 

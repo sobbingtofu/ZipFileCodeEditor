@@ -17,7 +17,7 @@ interface UseMonacoEditorSyncResult {
   flushContentToStore: (targetPath?: string) => void;
 }
 
-export function useMonacoEditorSync({
+function useMonacoEditorSync({
   activeFilePath,
   activeFile,
   onFlushContentToStoreChange,
@@ -180,3 +180,5 @@ export function useMonacoEditorSync({
     flushContentToStore,
   };
 }
+
+export {useMonacoEditorSync};
