@@ -1,7 +1,6 @@
 "use client";
 
 import {useMemo} from "react";
-import type {MouseEvent} from "react";
 import {useState} from "react";
 import {FileNode} from "@/src/types/fileType";
 import {findFileNodeInTree, useFileStore} from "@/src/store/useFileStore";
@@ -48,26 +47,11 @@ function MonacoEditorContainer({onFlushAllMonacoToZustandChange}: MonacoEditorCo
     return unsavedMap;
   }, [fileTree, openedFilePaths]);
 
-  const {monacoHostRef, flushMonacoToZustandByFilePath, rollbackMonacoModelToZustandByFilePath} = useMonacoEditorSync({
-    activeFilePath,
-    activeFile,
-    onFlushAllMonacoToZustandChange,
-  });
-
-  const handleTabClick = (filePath: string) => {
-    if (filePath === activeFilePath) {
-      return;
-    }
-    setActiveFilePath(filePath);
-  };
-
   /* 파일 탭 닫기 버튼 클릭 핸들러
    * - 닫으려는 탭의 파일 경로에 저장되지 않은 변경사항이 있는 경우 : 저장 확인 모달 열기
    * - 닫으려는 탭의 파일 경로에 저장되지 않은 변경사항이 없는 경우 : 바로 탭 닫기
    */
-  const handleTabClose = (event: MouseEvent<HTMLButtonElement>, filePath: string) => {
-    event.stopPropagation();
-
+  const handleTabClose = (filePath: string) => {
     const targetFileNode = findFileNodeInTree(fileTree, filePath);
     if (targetFileNode?.type === "file" && targetFileNode.haveUnsavedChange) {
       setIsSaveModalOpen(true);
@@ -75,6 +59,20 @@ function MonacoEditorContainer({onFlushAllMonacoToZustandChange}: MonacoEditorCo
     }
 
     closeFileTab(filePath);
+  };
+
+  const {monacoHostRef, flushMonacoToZustandByFilePath, rollbackMonacoModelToZustandByFilePath} = useMonacoEditorSync({
+    activeFilePath,
+    activeFile,
+    onFlushAllMonacoToZustandChange,
+    handleTabClose,
+  });
+
+  const handleTabClick = (filePath: string) => {
+    if (filePath === activeFilePath) {
+      return;
+    }
+    setActiveFilePath(filePath);
   };
 
   const handleCloseSaveCheckModal = () => {
@@ -113,7 +111,12 @@ function MonacoEditorContainer({onFlushAllMonacoToZustandChange}: MonacoEditorCo
             <S.TabLabel>{getTabName(openedPath)}</S.TabLabel>
             <S.TabActionGroup>
               <S.UnsavedDot $visible={Boolean(unsavedByPath[openedPath])} />
-              <S.CloseButton type="button" onClick={(event) => handleTabClose(event, openedPath)}>
+              <S.CloseButton
+                type="button"
+                onClick={() => {
+                  handleTabClose(openedPath);
+                }}
+              >
                 ×
               </S.CloseButton>
             </S.TabActionGroup>

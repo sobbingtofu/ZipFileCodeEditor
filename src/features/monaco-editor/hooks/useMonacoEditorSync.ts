@@ -11,6 +11,7 @@ interface UseMonacoEditorSyncProps {
   activeFile: FileNode | null;
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
   autoSave?: boolean;
+  handleTabClose: (filePath: string) => void;
 }
 
 interface UseMonacoEditorSyncResult {
@@ -25,6 +26,7 @@ function useMonacoEditorSync({
   activeFile,
   onFlushAllMonacoToZustandChange,
   autoSave = false,
+  handleTabClose,
 }: UseMonacoEditorSyncProps): UseMonacoEditorSyncResult {
   const updateFileContentByPath = useFileStore((state) => state.updateFileContentByPath);
   const setHaveUnsavedChangeByPath = useFileStore((state) => state.setHaveUnsavedChangeByPath);
@@ -284,6 +286,30 @@ function useMonacoEditorSync({
       window.removeEventListener("keydown", handleSaveShortcut);
     };
   }, [flushMonacoToZustandByFilePath]);
+
+  // Ctrl/Cmd + W 입력 시 브라우저 기본 탭 닫기를 막고 현재 활성 파일 탭 닫기 로직 실행
+  useEffect(() => {
+    const handleCloseShortcut = (event: KeyboardEvent) => {
+      const isCloseShortcut = (event.altKey || event.metaKey) && event.key.toLowerCase() === "w";
+      if (!isCloseShortcut) {
+        return;
+      }
+
+      if (!activeFilePath) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      handleTabClose(activeFilePath);
+    };
+
+    window.addEventListener("keydown", handleCloseShortcut);
+
+    return () => {
+      window.removeEventListener("keydown", handleCloseShortcut);
+    };
+  }, [activeFilePath, handleTabClose]);
 
   return {
     monacoHostRef,
