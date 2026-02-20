@@ -10,12 +10,12 @@ function useHandleZipUpload() {
   const resetEditorState = useEditorStore((state) => state.resetEditorState);
 
   /** Zip 업로드 후 트리 초기화 & 첫 파일 자동 오픈 */
-  const handleZipFileUpload = async (uploadedFile: File): Promise<{success: boolean; error: Error | null}> => {
+  const handleZipFileUpload = async (uploadedFile: File): Promise<{success: boolean; error: string | null}> => {
     try {
       if (!isZipFile(uploadedFile)) {
-        const error = new Error("업로드된 파일이 Zip 형식이 아닙니다.");
-        console.error(error);
-        return {success: false, error};
+        const errorMsg = "업로드된 파일이 Zip 형식이 아닙니다.";
+        console.error(errorMsg);
+        return {success: false, error: errorMsg};
       }
 
       setIsLoading(true);
