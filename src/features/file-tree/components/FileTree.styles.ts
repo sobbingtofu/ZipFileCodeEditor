@@ -45,6 +45,9 @@ export const FolderPrefix = styled.span`
 `;
 
 export const EmptyMessage = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   color: #979797;
   font-size: 12px;
   padding: 8px;
