@@ -16,7 +16,30 @@ export const TreeHeader = styled.div`
   border-bottom: 1px solid #2a2a2a;
 `;
 
-export const TreeScrollArea = styled.div`
+export const EmptyTreeContainer = styled.div<{$isHovering: boolean}>`
+  overflow: auto;
+  flex: 1;
+  padding: 6px 4px 10px;
+
+  outline: 1px dashed transparent;
+  outline-color: ${({$isHovering}) => ($isHovering ? "#6e6e6e" : "transparent")};
+  outline-offset: -6px;
+  background: #1b1b1b;
+  transition: outline-color 0.2s;
+
+  > * {
+    transform: scale(1);
+    transform-origin: center;
+    transition: transform 0.2s ease;
+    will-change: transform;
+  }
+
+  &:hover > * {
+    transform: scale(1.03);
+  }
+`;
+
+export const TreeScrollArea = styled.div<{$isHovering: boolean}>`
   overflow: auto;
   flex: 1;
   padding: 6px 4px 10px;
@@ -44,11 +67,15 @@ export const FolderPrefix = styled.span`
   width: 22px;
 `;
 
-export const EmptyMessage = styled.div`
+export const EmptyMessageContainer = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 4px;
   color: #979797;
-  font-size: 12px;
-  padding: 8px;
+  font-size: 13px;
+  padding: 60px 24px 8px 8px;
+  cursor: default;
+  user-select: none;
 `;
