@@ -10,6 +10,7 @@ import {useEditorStore} from "@/src/store/useEditorStore";
 import {ZipAlertModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
 import {UploadIcon} from "./UploadIcon";
+import {HiddenFileInput} from "@/app/page.styles";
 
 function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
@@ -20,7 +21,7 @@ function FileTree() {
   const [isZipAlertOpen, setIsZipAlertOpen] = useState(false);
   const [uploadErrMsg, setUploadErrMsg] = useState("");
 
-  const {handleZipFileDrop} = useHandleZipUpload();
+  const {handleZipFileDrop, handleZipFileInputChange} = useHandleZipUpload();
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -48,31 +49,38 @@ function FileTree() {
     <S.TreeContainer>
       <S.TreeHeader>파일 탐색기</S.TreeHeader>
       {!hasNodes && (
-        <S.EmptyTreeContainer
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={executeDropAndProcessResult}
-          $isHovering={isHovering}
-          onMouseOver={() => {
-            if (!hasNodes) {
-              setIsHovering(true);
-            }
-          }}
-          onMouseOut={() => {
-            if (!hasNodes) {
-              setIsHovering(false);
-            }
-          }}
-        >
-          <S.EmptyMessageContainer>
-            <div style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", color: "#6e6e6e"}}>
-              <UploadIcon />
-              <p>Zip 업로드 버튼을 클릭하거나 </p>
-              <p>여기에 Zip 파일을 드래그&드롭하면</p>
-              <p>트리가 표시됩니다.</p>
-            </div>
-          </S.EmptyMessageContainer>
-        </S.EmptyTreeContainer>
+        <>
+          <HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
+          <label htmlFor="zip-upload-input" style={{height: "100%", display: "block"}}>
+            <S.EmptyTreeContainer
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={executeDropAndProcessResult}
+              $isHovering={isHovering}
+              onMouseOver={() => {
+                if (!hasNodes) {
+                  setIsHovering(true);
+                }
+              }}
+              onMouseOut={() => {
+                if (!hasNodes) {
+                  setIsHovering(false);
+                }
+              }}
+            >
+              <S.EmptyMessageContainer>
+                <div
+                  style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", color: "#6e6e6e"}}
+                >
+                  <UploadIcon />
+                  <p>여기를 클릭하거나 드래그&드롭을 통해</p>
+                  <p>Zip 파일을 업로드하면</p>
+                  <p>트리가 표시됩니다.</p>
+                </div>
+              </S.EmptyMessageContainer>
+            </S.EmptyTreeContainer>
+          </label>
+        </>
       )}
       {hasNodes && (
         <S.TreeScrollArea

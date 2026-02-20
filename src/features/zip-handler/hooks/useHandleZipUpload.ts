@@ -35,7 +35,7 @@ function useHandleZipUpload() {
     }
   };
 
-  const handleZipFileUploadBtnClick = async (event: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
+  const handleZipFileInputChange = async (event: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
     const uploadedFile = event.target.files?.[0];
     if (!uploadedFile) {
       return;
@@ -62,7 +62,7 @@ function useHandleZipUpload() {
 
   return {
     handleZipFileUpload,
-    handleZipFileUploadBtnClick,
+    handleZipFileInputChange,
     handleZipFileDrop,
   };
 }

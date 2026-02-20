@@ -18,8 +18,9 @@ export const TreeHeader = styled.div`
 
 export const EmptyTreeContainer = styled.div<{$isHovering: boolean}>`
   overflow: auto;
-  flex: 1;
+  height: 100%;
   padding: 6px 4px 10px;
+  cursor: pointer;
 
   outline: 1px dashed transparent;
   outline-color: ${({$isHovering}) => ($isHovering ? "#6e6e6e" : "transparent")};
@@ -48,7 +49,6 @@ export const EmptyMessageContainer = styled.div`
   color: #979797;
   font-size: 13px;
   padding: 60px 24px 8px 8px;
-  cursor: default;
   user-select: none;
 `;
 

@@ -17,7 +17,7 @@ export default function Home() {
   const fileTree = useFileStore((state) => state.fileTree);
   const isLoading = useFileStore((state) => state.isLoading);
 
-  const {handleZipFileUploadBtnClick} = useHandleZipUpload();
+  const {handleZipFileInputChange} = useHandleZipUpload();
 
   const handleFlushContentToStoreChange = useCallback((flush: () => void) => {
     setFlushContentToStore(() => flush);
@@ -31,7 +31,7 @@ export default function Home() {
         <S.TopBarTitle>Zip File Code Editor</S.TopBarTitle>
         <S.TopBarActions>
           <S.ZipUploadLabel htmlFor="zip-upload-input">Zip 업로드</S.ZipUploadLabel>
-          <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileUploadBtnClick} />
+          <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
 
           <S.DownloadButton type="button" onClick={handleDownloadZip} disabled={fileTree.length === 0 || isLoading}>
             Zip 다운로드
