@@ -7,7 +7,7 @@ import * as S from "@/src/features/file-tree/components/FileTree.styles";
 import {FileTreeNode} from "./FileTreeNode";
 import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
-import {ZipAlertModal} from "@/src/features/custom-modal";
+import {CustomModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
 import {UploadIcon} from "./UploadIcon";
 import {HiddenFileInput} from "@/app/page.styles";
@@ -101,7 +101,7 @@ function FileTree() {
           ))}
         </S.TreeScrollArea>
       )}
-      <ZipAlertModal isOpen={isZipAlertOpen} onClose={handleCloseZipAlert} errorMessage={uploadErrMsg} />
+      <CustomModal isOpen={isZipAlertOpen} onClose={handleCloseZipAlert} message={uploadErrMsg} />
     </S.TreeContainer>
   );
 }

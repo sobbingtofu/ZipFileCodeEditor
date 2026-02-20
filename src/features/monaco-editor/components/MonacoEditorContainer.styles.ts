@@ -13,6 +13,29 @@ export const TabContainer = styled.div`
   overflow-x: auto;
   border-bottom: 1px solid #2a2a2a;
   background-color: #181818;
+
+  overflow-x: auto;
+
+  scrollbar-color: #333333 #161616;
+
+  &::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #161616;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 999px;
+    border: 2px solid #161616;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #3a3a3a;
+  }
 `;
 
 export const TabDiv = styled.div<{$isActive: boolean}>`
@@ -26,6 +49,25 @@ export const TabDiv = styled.div<{$isActive: boolean}>`
   padding: 8px 12px;
   cursor: pointer;
   white-space: nowrap;
+`;
+
+export const TabLabel = styled.span`
+  display: inline-block;
+`;
+
+export const TabActionGroup = styled.span`
+  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const UnsavedDot = styled.span<{$visible: boolean}>`
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #ffffff;
+  opacity: ${({$visible}) => ($visible ? 1 : 0)};
 `;
 
 export const CloseButton = styled.button`
@@ -42,10 +84,12 @@ export const CloseButton = styled.button`
   }
 `;
 
-export const ViewerBody = styled.div`
+export const EditorBody = styled.div`
   flex: 1;
   min-height: 0;
   position: relative;
+  overflow: hidden;
+  padding: 24px 0px 0px 0px;
 `;
 
 export const MonacoHost = styled.div`
@@ -65,15 +109,18 @@ export const EmptyState = styled.div`
 export const ImageViewer = styled.div`
   height: 100%;
   width: 100%;
-  overflow: auto;
-  display: grid;
-  place-items: center;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px;
 `;
 
-export const PreviewImage = styled.img`
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border: 1px solid #2a2a2a;
+export const ImageViewport = styled.div`
+  position: relative;
+  padding: 20px;
+  width: 85%;
+  height: 85%;
 `;

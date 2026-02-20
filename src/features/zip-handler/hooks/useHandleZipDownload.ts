@@ -1,10 +1,8 @@
 import {useFileStore} from "@/src/store/useFileStore";
 import {createZipBlobFromTree} from "../logic/zipService";
 
-function useHandleZipDownload({flushContentToStore}: {flushContentToStore: () => void}) {
+function useHandleZipDownload() {
   const handleDownloadZip = async () => {
-    flushContentToStore();
-
     const latestTree = useFileStore.getState().fileTree;
     if (latestTree.length === 0) {
       return;

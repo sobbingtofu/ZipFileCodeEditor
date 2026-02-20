@@ -6,4 +6,5 @@ export interface FileNode {
   children?: FileNode[];
   content?: string;
   isBinary?: boolean;
+  haveUnsavedChange?: boolean;
 }
