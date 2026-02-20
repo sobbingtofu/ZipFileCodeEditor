@@ -6,10 +6,11 @@ import {FileNode} from "@/src/types/fileType";
 import {useFileStore} from "@/src/store/useFileStore";
 import {getLanguageByFilePath} from "../logic/editorLogics";
 
-interface UseMonacoEditorSyncParams {
+interface UseMonacoEditorSyncProps {
   activeFilePath: string | null;
   activeFile: FileNode | null;
   onFlushContentToStoreChange: (flushContentToStore: () => void) => void;
+  autoSave?: boolean;
 }
 
 interface UseMonacoEditorSyncResult {
@@ -21,7 +22,8 @@ function useMonacoEditorSync({
   activeFilePath,
   activeFile,
   onFlushContentToStoreChange,
-}: UseMonacoEditorSyncParams): UseMonacoEditorSyncResult {
+  autoSave = false,
+}: UseMonacoEditorSyncProps): UseMonacoEditorSyncResult {
   const updateFileContentByPath = useFileStore((state) => state.updateFileContentByPath);
 
   const monacoHostRef = useRef<HTMLDivElement | null>(null);
@@ -147,8 +149,10 @@ function useMonacoEditorSync({
 
         dirtyTextCacheRef.current.set(currentPath, activeModel.getValue());
 
-        // 디바운스 예약 걸어두기
-        scheduleFlushForPath(currentPath);
+        if (autoSave) {
+          // 디바운스 예약 걸어두기
+          scheduleFlushForPath(currentPath);
+        }
       });
 
       editorRef.current = editor;
