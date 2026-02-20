@@ -101,7 +101,7 @@ function FileTree() {
           ))}
         </S.TreeScrollArea>
       )}
-      <CustomModal isOpen={isZipAlertOpen} onClose={handleCloseZipAlert} errorMessage={uploadErrMsg} />
+      <CustomModal isOpen={isZipAlertOpen} onClose={handleCloseZipAlert} message={uploadErrMsg} />
     </S.TreeContainer>
   );
 }

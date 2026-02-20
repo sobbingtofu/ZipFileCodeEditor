@@ -3,28 +3,31 @@
 import {useCallback, useEffect, useRef} from "react";
 import type * as MonacoEditor from "monaco-editor";
 import {FileNode} from "@/src/types/fileType";
-import {useFileStore} from "@/src/store/useFileStore";
+import {findFileNodeInTree, useFileStore} from "@/src/store/useFileStore";
 import {getLanguageByFilePath} from "../logic/editorLogics";
 
 interface UseMonacoEditorSyncProps {
   activeFilePath: string | null;
   activeFile: FileNode | null;
-  onFlushMonacoToZustandByFilePathChange: (flushMonacoToZustandByFilePath: () => void) => void;
+  onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
   autoSave?: boolean;
 }
 
 interface UseMonacoEditorSyncResult {
   monacoHostRef: React.RefObject<HTMLDivElement | null>;
   flushMonacoToZustandByFilePath: (targetPath?: string) => void;
+  flushAllMonacoToZustand: () => void;
+  rollbackMonacoModelToZustandByFilePath: (targetPath: string) => void;
 }
 
 function useMonacoEditorSync({
   activeFilePath,
   activeFile,
-  onFlushMonacoToZustandByFilePathChange,
+  onFlushAllMonacoToZustandChange,
   autoSave = false,
 }: UseMonacoEditorSyncProps): UseMonacoEditorSyncResult {
   const updateFileContentByPath = useFileStore((state) => state.updateFileContentByPath);
+  const setHaveUnsavedChangeByPath = useFileStore((state) => state.setHaveUnsavedChangeByPath);
 
   const monacoHostRef = useRef<HTMLDivElement | null>(null);
   const monacoRef = useRef<typeof MonacoEditor | null>(null);
@@ -32,6 +35,8 @@ function useMonacoEditorSync({
   const modelCacheRef = useRef<Map<string, MonacoEditor.editor.ITextModel>>(new Map());
   const activeModelPathRef = useRef<string | null>(null);
   const flushDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onDidChangeModelContentRef = useRef<MonacoEditor.IDisposable | null>(null);
+  const isModelValueSyncingRef = useRef(false);
 
   /**
    * 현재 편집 중인 모델의 내용을 Zustand 스토어에 저장하는 함수
@@ -55,24 +60,40 @@ function useMonacoEditorSync({
     [updateFileContentByPath],
   );
 
+  const flushAllMonacoToZustand = useCallback(() => {
+    for (const [modelPath, model] of modelCacheRef.current.entries()) {
+      updateFileContentByPath(modelPath, model.getValue());
+    }
+  }, [updateFileContentByPath]);
+
   /**
-   * 특정 파일 경로에 대한 flushMonacoToZustandByFilePath 함수를 일정 시간 지연(debounce) 후 실행하는 함수
-   * - 편집 도중에 너무 자주 flushMonacoToZustandByFilePath가 호출되는 것을 방지하여 성능 최적화
-   * - 5초 동안 추가 편집이 없으면 자동으로 저장 실행
-   * - 파일 경로를 지정하지 않으면 현재 활성 모델의 내용을 저장
+   * Monaco 모델의 내용을 Zustand 스토어에 저장된 내용으로 롤백하는 함수
+   * - 모델이 존재하지 않는 경우 : 롤백할 내용이 없으므로 haveUnsavedChange 플래그만 false로 설정
+   * - 모델이 존재하지만 해당 경로에 파일 노드가 없거나 파일 노드가 파일이 아닌 경우 : 롤백할 내용이 없으므로 haveUnsavedChange 플래그만 false로 설정
+   * - 모델과 파일 노드가 모두 존재하는 경우 : 모델의 내용을 파일 노드의 content로 덮어쓰고 haveUnsavedChange 플래그를 false로 설정
+   * - 롤백 적용되는 시점에는 편집 중인 내용이 Monaco 모델에 반영되어 있으므로 isModelValueSyncingRef를 사용해 롤백으로 인한 모델 변경과 사용자의 편집으로 인한 모델 변경을 구분하여 무한 루프 방지
    */
-  const scheduleFlushForPath = useCallback(
+  const rollbackMonacoModelToZustandByFilePath = useCallback(
     (targetPath: string) => {
-      if (flushDebounceTimerRef.current) {
-        clearTimeout(flushDebounceTimerRef.current);
+      const model = modelCacheRef.current.get(targetPath);
+      if (!model) {
+        setHaveUnsavedChangeByPath(targetPath, false);
+        return;
       }
 
-      flushDebounceTimerRef.current = setTimeout(() => {
-        console.log(`자동 저장 실행: ${targetPath}`);
-        flushMonacoToZustandByFilePath(targetPath);
-      }, 5000);
+      const latestTree = useFileStore.getState().fileTree;
+      const targetNode = findFileNodeInTree(latestTree, targetPath);
+      if (!targetNode || targetNode.type !== "file") {
+        setHaveUnsavedChangeByPath(targetPath, false);
+        return;
+      }
+
+      isModelValueSyncingRef.current = true;
+      model.setValue(targetNode.content ?? "");
+      isModelValueSyncingRef.current = false;
+      setHaveUnsavedChangeByPath(targetPath, false);
     },
-    [flushMonacoToZustandByFilePath],
+    [setHaveUnsavedChangeByPath],
   );
 
   /**
@@ -96,14 +117,14 @@ function useMonacoEditorSync({
     [],
   );
 
-  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 flushMonacoToZustandByFilePath 함수 전달
+  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 flushAllMonacoToZustand 함수 전달
   useEffect(() => {
-    onFlushMonacoToZustandByFilePathChange(flushMonacoToZustandByFilePath);
+    onFlushAllMonacoToZustandChange(flushAllMonacoToZustand);
 
     return () => {
-      onFlushMonacoToZustandByFilePathChange(() => {});
+      onFlushAllMonacoToZustandChange(() => {});
     };
-  }, [onFlushMonacoToZustandByFilePathChange, flushMonacoToZustandByFilePath]);
+  }, [onFlushAllMonacoToZustandChange, flushAllMonacoToZustand]);
 
   // Monaco Editor 초기화 및 정리
   useEffect(() => {
@@ -127,6 +148,30 @@ function useMonacoEditorSync({
         theme: "vs-dark",
       });
 
+      onDidChangeModelContentRef.current = editor.onDidChangeModelContent(() => {
+        // 모델 내용이 변경될 때마다 해당 내용을 Zustand에 반영하되,
+        // isModelValueSyncingRef를 통해 롤백으로 인한 변경과 사용자의 편집으로 인한 변경을 구분하여 무한 루프 오류 방지
+        if (isModelValueSyncingRef.current) {
+          return;
+        }
+
+        const currentActivePath = activeModelPathRef.current;
+        if (!currentActivePath) {
+          return;
+        }
+
+        setHaveUnsavedChangeByPath(currentActivePath, true);
+        if (autoSave) {
+          if (flushDebounceTimerRef.current) {
+            clearTimeout(flushDebounceTimerRef.current);
+          }
+
+          flushDebounceTimerRef.current = setTimeout(() => {
+            flushMonacoToZustandByFilePath(currentActivePath);
+          }, 5000);
+        }
+      });
+
       editorRef.current = editor;
     };
 
@@ -137,7 +182,8 @@ function useMonacoEditorSync({
         clearTimeout(flushDebounceTimerRef.current);
       }
 
-      flushMonacoToZustandByFilePath();
+      onDidChangeModelContentRef.current?.dispose();
+      onDidChangeModelContentRef.current = null;
       editorRef.current?.dispose();
       editorRef.current = null;
 
@@ -145,7 +191,7 @@ function useMonacoEditorSync({
       modelCacheRef.current.clear();
       activeModelPathRef.current = null;
     };
-  }, [flushMonacoToZustandByFilePath, scheduleFlushForPath]);
+  }, [autoSave, flushMonacoToZustandByFilePath, setHaveUnsavedChangeByPath]);
 
   // 선택된 파일이 변경될 때마다 해당 파일에 맞는 Monaco 모델로 에디터를 업데이트
   useEffect(() => {
@@ -154,15 +200,6 @@ function useMonacoEditorSync({
 
     if (!editor || !monaco) {
       return;
-    }
-
-    const previousActivePath = activeModelPathRef.current;
-    if (previousActivePath && previousActivePath !== activeFilePath) {
-      if (flushDebounceTimerRef.current) {
-        clearTimeout(flushDebounceTimerRef.current);
-      }
-
-      flushMonacoToZustandByFilePath(previousActivePath);
     }
 
     if (!activeFilePath || !activeFile || activeFile.type !== "file" || activeFile.isBinary) {
@@ -175,7 +212,7 @@ function useMonacoEditorSync({
 
     editor.setModel(model);
     activeModelPathRef.current = activeFile.path;
-  }, [activeFilePath, activeFile, getOrCreateModel, flushMonacoToZustandByFilePath]);
+  }, [activeFilePath, activeFile, getOrCreateModel]);
 
   // Ctrl/Cmd + S 입력 시 브라우저 기본 저장 동작을 막고 현재 편집 내용을 Zustand에 반영
   useEffect(() => {
@@ -205,6 +242,8 @@ function useMonacoEditorSync({
   return {
     monacoHostRef,
     flushMonacoToZustandByFilePath,
+    flushAllMonacoToZustand,
+    rollbackMonacoModelToZustandByFilePath,
   };
 }
 

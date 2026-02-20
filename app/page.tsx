@@ -1,16 +1,17 @@
 "use client";
 
-import {ChangeEvent, useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useRef, useState} from "react";
 import {useFileStore} from "@/src/store/useFileStore";
 import {FileTree, useHandleTreeContainerWidth} from "@/src/features/file-tree";
 import * as S from "@/app/page.styles";
 import {useHandleZipDownload, useHandleZipUpload} from "@/src/features/zip-handler";
 import {MonacoEditorContainer} from "@/src/features/monaco-editor";
+import {CustomModal} from "@/src/features/custom-modal";
 
 export default function Home() {
   const bodyLayoutRef = useRef<HTMLDivElement>(null);
-
-  const [flushMonacoToZustandByFilePath, setFlushMonacoToZustandByFilePath] = useState<() => void>(() => () => {});
+  const [isUnsavedAlertOpen, setIsUnsavedAlertOpen] = useState(false);
+  const [flushAllMonacoToZustand, setFlushAllMonacoToZustand] = useState<() => void>(() => () => {});
 
   const {leftPanelWidth, handleResizeStart} = useHandleTreeContainerWidth({bodyLayoutRef});
 
@@ -19,11 +20,36 @@ export default function Home() {
 
   const {handleZipFileInputChange} = useHandleZipUpload();
 
-  const handleFlushMonacoToZustandByFilePathChange = useCallback((flush: () => void) => {
-    setFlushMonacoToZustandByFilePath(() => flush);
+  const hasUnsavedChanges = useFileStore((state) => state.hasUnsavedChanges);
+  const handleDownloadZip = useHandleZipDownload();
+
+  const handleFlushAllMonacoToZustandChange = useCallback((flushAll: () => void) => {
+    setFlushAllMonacoToZustand(() => flushAll);
   }, []);
 
-  const handleDownloadZip = useHandleZipDownload({flushMonacoToZustandByFilePath});
+  const handleCloseUnsavedModal = () => {
+    setIsUnsavedAlertOpen(false);
+  };
+
+  const handleSaveAllAndDownload = async () => {
+    flushAllMonacoToZustand();
+    await handleDownloadZip();
+    handleCloseUnsavedModal();
+  };
+
+  const handleDownloadWithoutSave = async () => {
+    await handleDownloadZip();
+    handleCloseUnsavedModal();
+  };
+
+  const handleDownloadButtonClick = async () => {
+    if (hasUnsavedChanges()) {
+      setIsUnsavedAlertOpen(true);
+      return;
+    }
+
+    await handleDownloadZip();
+  };
 
   return (
     <S.Main>
@@ -33,7 +59,11 @@ export default function Home() {
           <S.ZipUploadLabel htmlFor="zip-upload-input">Zip 업로드</S.ZipUploadLabel>
           <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
 
-          <S.DownloadButton type="button" onClick={handleDownloadZip} disabled={fileTree.length === 0 || isLoading}>
+          <S.DownloadButton
+            type="button"
+            onClick={handleDownloadButtonClick}
+            disabled={fileTree.length === 0 || isLoading}
+          >
             Zip 다운로드
           </S.DownloadButton>
         </S.TopBarActions>
@@ -47,9 +77,20 @@ export default function Home() {
         <S.PanelResizer onMouseDown={handleResizeStart} />
 
         <S.RightPanel>
-          <MonacoEditorContainer onFlushMonacoToZustandByFilePathChange={handleFlushMonacoToZustandByFilePathChange} />
+          <MonacoEditorContainer onFlushAllMonacoToZustandChange={handleFlushAllMonacoToZustandChange} />
         </S.RightPanel>
       </S.BodyLayout>
+      <CustomModal
+        modalType="multiBtns"
+        isOpen={isUnsavedAlertOpen}
+        onClose={handleCloseUnsavedModal}
+        message="다운로드 전 변경내역을 저장할까요?"
+        btnInfo={[
+          {btnName: "저장 후 다운로드", btnFunc: handleSaveAllAndDownload},
+          {btnName: "저장하지 않고 다운로드", btnFunc: handleDownloadWithoutSave},
+          {btnName: "닫기", btnFunc: handleCloseUnsavedModal},
+        ]}
+      />
     </S.Main>
   );
 }

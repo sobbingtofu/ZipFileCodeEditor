@@ -56,6 +56,7 @@ const ensureFolderNode = (folderPath: string, rootNodes: FileNode[], folderMap: 
         path: currentPath,
         children: [],
         isBinary: false,
+        haveUnsavedChange: false,
       };
 
       folderMap.set(currentPath, createdFolderNode);
@@ -131,6 +132,7 @@ export const parseZipFileToTree = async (zipFile: File): Promise<FileNode[]> => 
       path: normalizedEntryPath,
       content: fileContent,
       isBinary,
+      haveUnsavedChange: false,
     };
 
     if (!parentFolderPath) {

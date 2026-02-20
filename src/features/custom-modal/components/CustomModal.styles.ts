@@ -16,7 +16,7 @@ export const CustomModal = styled.div`
   border-radius: 12px;
   background: #1b1b1b;
   color: #f0f0f0;
-  padding: 18px 16px 14px;
+  padding: 24px 28px;
 `;
 
 export const ModalTitle = styled.h2`
@@ -25,10 +25,16 @@ export const ModalTitle = styled.h2`
 `;
 
 export const ModalDescription = styled.p`
-  margin: 10px 0 16px;
   font-size: 13px;
   color: #b7b7b7;
   line-height: 1.45;
+`;
+
+export const ModalButtonContainer = styled.div`
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 `;
 
 export const ModalButton = styled.button`

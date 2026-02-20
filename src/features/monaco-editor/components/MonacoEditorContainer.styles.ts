@@ -28,6 +28,25 @@ export const TabDiv = styled.div<{$isActive: boolean}>`
   white-space: nowrap;
 `;
 
+export const TabLabel = styled.span`
+  display: inline-block;
+`;
+
+export const TabActionGroup = styled.span`
+  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const UnsavedDot = styled.span<{$visible: boolean}>`
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #ffffff;
+  opacity: ${({$visible}) => ($visible ? 1 : 0)};
+`;
+
 export const CloseButton = styled.button`
   width: 18px;
   height: 18px;
