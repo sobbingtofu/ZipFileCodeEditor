@@ -80,7 +80,19 @@ export const BodyLayout = styled.div`
 export const LeftPanel = styled.div`
   min-width: 0;
   min-height: 0;
-  width: 280px;
+  min-width: 200px;
+  flex-shrink: 0;
+`;
+
+export const PanelResizer = styled.div`
+  width: 6px;
+  min-height: 0;
+  cursor: col-resize;
+  background: transparent;
+
+  &:hover {
+    background: #2a2a2a;
+  }
 `;
 
 export const RightPanel = styled.div`

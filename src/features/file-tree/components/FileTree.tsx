@@ -72,10 +72,12 @@ function FileTree() {
           }}
         >
           <S.EmptyMessageContainer>
-            <UploadIcon />
-            <p>Zip 업로드 버튼을 클릭하거나 </p>
-            <p>여기에 Zip 파일을 드래그&드롭하면</p>
-            <p>트리가 표시됩니다.</p>
+            <div style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", color: "#6e6e6e"}}>
+              <UploadIcon />
+              <p>Zip 업로드 버튼을 클릭하거나 </p>
+              <p>여기에 Zip 파일을 드래그&드롭하면</p>
+              <p>트리가 표시됩니다.</p>
+            </div>
           </S.EmptyMessageContainer>
         </S.EmptyTreeContainer>
       )}
