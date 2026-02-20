@@ -145,7 +145,7 @@ export const parseZipFileToTree = async (zipFile: File): Promise<FileNode[]> => 
   return sortTreeRecursively(rootNodes);
 };
 
-/** Zip 파일 트리를 JSZip 활용해 Blob 형태로 변환 >> 다운로드 가능한 형태로 변환 */
+/** 데이터 URL에서 Base64 부분을 추출하는 함수 */
 const extractBase64FromDataUrl = (dataUrl: string): string => {
   const commaIndex = dataUrl.indexOf(",");
   const base64Part = commaIndex >= 0 ? dataUrl.slice(commaIndex + 1) : dataUrl;

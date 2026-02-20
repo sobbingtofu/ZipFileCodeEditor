@@ -10,6 +10,7 @@ import * as S from "./MonacoEditorContainer.styles";
 
 import {getTabName} from "../logic/editorLogics";
 import {useMonacoEditorSync} from "@/src/features/monaco-editor";
+import Image from "next/image";
 
 interface MonacoEditorContainerEditorContainerProps {
   onFlushContentToStoreChange: (flushContentToStore: () => void) => void;
@@ -68,13 +69,21 @@ function MonacoEditorContainer({onFlushContentToStoreChange}: MonacoEditorContai
           </S.TabDiv>
         ))}
       </S.TabContainer>
-
-      <S.ViewerBody>
+      <S.EditorBody>
         {!activeFilePath && <S.EmptyState>왼쪽 파일 트리에서 파일을 선택하세요.</S.EmptyState>}
 
         {activeFilePath && activeFile?.isBinary && (
           <S.ImageViewer>
-            <S.PreviewImage src={activeFile.content ?? ""} alt={activeFile.name} />
+            <S.ImageViewport>
+              <Image
+                src={activeFile.content ?? ""}
+                alt={activeFile.name}
+                fill
+                unoptimized
+                sizes="100vw"
+                style={{objectFit: "contain", objectPosition: "center"}}
+              />
+            </S.ImageViewport>
           </S.ImageViewer>
         )}
 
@@ -82,7 +91,7 @@ function MonacoEditorContainer({onFlushContentToStoreChange}: MonacoEditorContai
           ref={monacoHostRef}
           style={{display: activeFile?.isBinary || !activeFilePath ? "none" : "block"}}
         />
-      </S.ViewerBody>
+      </S.EditorBody>
     </S.EditorWrapper>
   );
 }

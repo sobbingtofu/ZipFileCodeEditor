@@ -42,10 +42,11 @@ export const CloseButton = styled.button`
   }
 `;
 
-export const ViewerBody = styled.div`
+export const EditorBody = styled.div`
   flex: 1;
   min-height: 0;
   position: relative;
+  overflow: hidden;
 `;
 
 export const MonacoHost = styled.div`
@@ -65,15 +66,18 @@ export const EmptyState = styled.div`
 export const ImageViewer = styled.div`
   height: 100%;
   width: 100%;
-  overflow: auto;
-  display: grid;
-  place-items: center;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px;
 `;
 
-export const PreviewImage = styled.img`
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border: 1px solid #2a2a2a;
+export const ImageViewport = styled.div`
+  position: relative;
+  padding: 20px;
+  width: 85%;
+  height: 85%;
 `;
