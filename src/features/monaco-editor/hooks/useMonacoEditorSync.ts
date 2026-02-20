@@ -30,6 +30,7 @@ function useMonacoEditorSync({
   const modelCacheRef = useRef<Map<string, MonacoEditor.editor.ITextModel>>(new Map());
   const activeModelPathRef = useRef<string | null>(null);
   const dirtyTextCacheRef = useRef<Map<string, string>>(new Map());
+  const flushDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
    * 현재 편집 중인 모델의 내용을 Zustand 스토어에 저장하는 함수
@@ -61,6 +62,26 @@ function useMonacoEditorSync({
       }
     },
     [updateFileContentByPath],
+  );
+
+  /**
+   * 특정 파일 경로에 대한 flushContentToStore 함수를 일정 시간 지연(debounce) 후 실행하는 함수
+   * - 편집 도중에 너무 자주 flushContentToStore가 호출되는 것을 방지하여 성능 최적화
+   * - 5초 동안 추가 편집이 없으면 자동으로 저장 실행
+   * - 파일 경로를 지정하지 않으면 현재 활성 모델의 내용을 저장
+   */
+  const scheduleFlushForPath = useCallback(
+    (targetPath: string) => {
+      if (flushDebounceTimerRef.current) {
+        clearTimeout(flushDebounceTimerRef.current);
+      }
+
+      flushDebounceTimerRef.current = setTimeout(() => {
+        console.log(`자동 저장 실행: ${targetPath}`);
+        flushContentToStore(targetPath);
+      }, 5000);
+    },
+    [flushContentToStore],
   );
 
   /**
@@ -125,6 +146,9 @@ function useMonacoEditorSync({
         }
 
         dirtyTextCacheRef.current.set(currentPath, activeModel.getValue());
+
+        // 디바운스 예약 걸어두기
+        scheduleFlushForPath(currentPath);
       });
 
       editorRef.current = editor;
@@ -133,6 +157,10 @@ function useMonacoEditorSync({
     createMonacoEditor();
 
     return () => {
+      if (flushDebounceTimerRef.current) {
+        clearTimeout(flushDebounceTimerRef.current);
+      }
+
       flushContentToStore();
       editorRef.current?.dispose();
       editorRef.current = null;
@@ -142,7 +170,7 @@ function useMonacoEditorSync({
       dirtyTextCacheRef.current.clear();
       activeModelPathRef.current = null;
     };
-  }, [flushContentToStore]);
+  }, [flushContentToStore, scheduleFlushForPath]);
 
   // 선택된 파일이 변경될 때마다 해당 파일에 맞는 Monaco 모델로 에디터를 업데이트
   useEffect(() => {
@@ -155,6 +183,10 @@ function useMonacoEditorSync({
 
     const previousActivePath = activeModelPathRef.current;
     if (previousActivePath && previousActivePath !== activeFilePath) {
+      if (flushDebounceTimerRef.current) {
+        clearTimeout(flushDebounceTimerRef.current);
+      }
+
       flushContentToStore(previousActivePath);
     }
 
@@ -174,6 +206,31 @@ function useMonacoEditorSync({
     editor.setModel(model);
     activeModelPathRef.current = activeFile.path;
   }, [activeFilePath, activeFile, getOrCreateModel, flushContentToStore]);
+
+  // Ctrl/Cmd + S 입력 시 브라우저 기본 저장 동작을 막고 현재 편집 내용을 Zustand에 반영
+  useEffect(() => {
+    const handleSaveShortcut = (event: KeyboardEvent) => {
+      const isSaveShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s";
+      if (!isSaveShortcut) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (flushDebounceTimerRef.current) {
+        clearTimeout(flushDebounceTimerRef.current);
+      }
+
+      flushContentToStore();
+    };
+
+    window.addEventListener("keydown", handleSaveShortcut);
+
+    return () => {
+      window.removeEventListener("keydown", handleSaveShortcut);
+    };
+  }, [flushContentToStore]);
 
   return {
     monacoHostRef,
