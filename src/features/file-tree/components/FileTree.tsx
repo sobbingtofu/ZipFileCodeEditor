@@ -10,15 +10,18 @@ import {useEditorStore} from "@/src/store/useEditorStore";
 import {ZipAlertModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
 import {UploadIcon} from "./UploadIcon";
+import {HiddenFileInput} from "@/app/page.styles";
 
 function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
   const activeFilePath = useEditorStore((state) => state.activeFilePath);
   const hasNodes = useMemo(() => fileTree.length > 0, [fileTree]);
+
   const [isHovering, setIsHovering] = useState(false);
   const [isZipAlertOpen, setIsZipAlertOpen] = useState(false);
+  const [uploadErrMsg, setUploadErrMsg] = useState("");
 
-  const {handleZipFileUpload} = useHandleZipUpload();
+  const {handleZipFileDrop, handleZipFileInputChange} = useHandleZipUpload();
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -29,53 +32,58 @@ function FileTree() {
     event.preventDefault();
   };
 
-  const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-
-    const droppedFile = event.dataTransfer.files?.[0];
-    if (!droppedFile) {
-      return;
-    }
-
-    const isUploaded = await handleZipFileUpload(droppedFile);
-    if (!isUploaded.success) {
+  const executeDropAndProcessResult = async (event: DragEvent<HTMLDivElement>) => {
+    const result = await handleZipFileDrop(event);
+    if (result && !result.success) {
+      setUploadErrMsg(result.error || "알 수 없는 오류가 발생했습니다.");
       setIsZipAlertOpen(true);
     }
+  };
+
+  const handleCloseZipAlert = () => {
+    setIsZipAlertOpen(false);
+    setUploadErrMsg("");
   };
 
   return (
     <S.TreeContainer>
       <S.TreeHeader>파일 탐색기</S.TreeHeader>
       {!hasNodes && (
-        <S.EmptyTreeContainer
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          $isHovering={isHovering}
-          onMouseOver={() => {
-            if (!hasNodes) {
-              setIsHovering(true);
-            }
-          }}
-          onMouseOut={() => {
-            if (!hasNodes) {
-              setIsHovering(false);
-            }
-          }}
-        >
-          <S.EmptyMessageContainer>
-            <UploadIcon />
-            <p>Zip 업로드 버튼을 클릭하거나 </p>
-            <p>여기에 Zip 파일을 드래그&드롭하면</p>
-            <p>트리가 표시됩니다.</p>
-          </S.EmptyMessageContainer>
-        </S.EmptyTreeContainer>
+        <>
+          <HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
+          <label htmlFor="zip-upload-input" style={{height: "100%", display: "flex", flexDirection: "column"}}>
+            <S.EmptyTreeContainer
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={executeDropAndProcessResult}
+              $isHovering={isHovering}
+              onMouseOver={() => {
+                if (!hasNodes) {
+                  setIsHovering(true);
+                }
+              }}
+              onMouseOut={() => {
+                if (!hasNodes) {
+                  setIsHovering(false);
+                }
+              }}
+            >
+              <S.EmptyMessageContainer>
+                <div
+                  style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", color: "#6e6e6e"}}
+                >
+                  <UploadIcon />
+                  <p>여기를 클릭하거나 드래그&드롭을 통해</p>
+                  <p>Zip 파일을 업로드하면</p>
+                  <p>트리가 표시됩니다.</p>
+                </div>
+              </S.EmptyMessageContainer>
+            </S.EmptyTreeContainer>
+          </label>
+        </>
       )}
       {hasNodes && (
         <S.TreeScrollArea
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
           $isHovering={isHovering}
           onMouseOver={() => {
             if (hasNodes) {
@@ -93,7 +101,7 @@ function FileTree() {
           ))}
         </S.TreeScrollArea>
       )}
-      <ZipAlertModal isOpen={isZipAlertOpen} onClose={() => setIsZipAlertOpen(false)} />
+      <ZipAlertModal isOpen={isZipAlertOpen} onClose={handleCloseZipAlert} errorMessage={uploadErrMsg} />
     </S.TreeContainer>
   );
 }

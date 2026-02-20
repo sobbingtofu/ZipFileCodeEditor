@@ -1,19 +1,23 @@
 "use client";
 
-import {ChangeEvent, useCallback, useState} from "react";
+import {ChangeEvent, useCallback, useEffect, useRef, useState} from "react";
 import {useFileStore} from "@/src/store/useFileStore";
-import {FileTree} from "@/src/features/file-tree";
+import {FileTree, useHandleTreeContainerWidth} from "@/src/features/file-tree";
 import * as S from "@/app/page.styles";
 import {useHandleZipDownload, useHandleZipUpload} from "@/src/features/zip-handler";
 import {MonacoEditorContainer} from "@/src/features/monaco-editor";
 
 export default function Home() {
+  const bodyLayoutRef = useRef<HTMLDivElement>(null);
+
   const [flushContentToStore, setFlushContentToStore] = useState<() => void>(() => () => {});
+
+  const {leftPanelWidth, handleResizeStart} = useHandleTreeContainerWidth({bodyLayoutRef});
 
   const fileTree = useFileStore((state) => state.fileTree);
   const isLoading = useFileStore((state) => state.isLoading);
 
-  const {handleZipFileUpload} = useHandleZipUpload();
+  const {handleZipFileInputChange} = useHandleZipUpload();
 
   const handleFlushContentToStoreChange = useCallback((flush: () => void) => {
     setFlushContentToStore(() => flush);
@@ -21,26 +25,13 @@ export default function Home() {
 
   const handleDownloadZip = useHandleZipDownload({flushContentToStore});
 
-  const handleZipFileUploadBtn = async (event: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-    const uploadedFile = event.target.files?.[0];
-    if (!uploadedFile) {
-      return;
-    }
-    try {
-      await handleZipFileUpload(uploadedFile);
-    } finally {
-      // 재업로드 안정성 보장
-      event.target.value = "";
-    }
-  };
-
   return (
     <S.Main>
       <S.TopBar>
         <S.TopBarTitle>Zip File Code Editor</S.TopBarTitle>
         <S.TopBarActions>
           <S.ZipUploadLabel htmlFor="zip-upload-input">Zip 업로드</S.ZipUploadLabel>
-          <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileUploadBtn} />
+          <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
 
           <S.DownloadButton type="button" onClick={handleDownloadZip} disabled={fileTree.length === 0 || isLoading}>
             Zip 다운로드
@@ -48,10 +39,12 @@ export default function Home() {
         </S.TopBarActions>
       </S.TopBar>
 
-      <S.BodyLayout>
-        <S.LeftPanel>
+      <S.BodyLayout ref={bodyLayoutRef}>
+        <S.LeftPanel style={{width: `${leftPanelWidth}px`}}>
           <FileTree />
         </S.LeftPanel>
+
+        <S.PanelResizer onMouseDown={handleResizeStart} />
 
         <S.RightPanel>
           <MonacoEditorContainer onFlushContentToStoreChange={handleFlushContentToStoreChange} />

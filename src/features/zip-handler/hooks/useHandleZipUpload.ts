@@ -2,6 +2,7 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {isZipFile, parseZipFileToTree} from "../logic/zipService";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {findFirstFileNode} from "../../file-tree";
+import {ChangeEvent, DragEvent} from "react";
 
 function useHandleZipUpload() {
   const setFileTree = useFileStore((state) => state.setFileTree);
@@ -10,12 +11,12 @@ function useHandleZipUpload() {
   const resetEditorState = useEditorStore((state) => state.resetEditorState);
 
   /** Zip 업로드 후 트리 초기화 & 첫 파일 자동 오픈 */
-  const handleZipFileUpload = async (uploadedFile: File): Promise<{success: boolean; error: Error | null}> => {
+  const handleZipFileUpload = async (uploadedFile: File): Promise<{success: boolean; error: string | null}> => {
     try {
       if (!isZipFile(uploadedFile)) {
-        const error = new Error("업로드된 파일이 Zip 형식이 아닙니다.");
-        console.error(error);
-        return {success: false, error};
+        const errorMsg = "업로드된 파일이 Zip 형식이 아닙니다.";
+        console.error(errorMsg);
+        return {success: false, error: errorMsg};
       }
 
       setIsLoading(true);
@@ -34,8 +35,35 @@ function useHandleZipUpload() {
     }
   };
 
+  const handleZipFileInputChange = async (event: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
+    const uploadedFile = event.target.files?.[0];
+    if (!uploadedFile) {
+      return;
+    }
+    try {
+      await handleZipFileUpload(uploadedFile);
+    } finally {
+      // 재업로드 안정성 보장
+      event.target.value = "";
+    }
+  };
+
+  const handleZipFileDrop = async (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+
+    const droppedFile = event.dataTransfer.files?.[0];
+    if (!droppedFile) {
+      return;
+    }
+
+    const uploadResult = await handleZipFileUpload(droppedFile);
+    return uploadResult;
+  };
+
   return {
     handleZipFileUpload,
+    handleZipFileInputChange,
+    handleZipFileDrop,
   };
 }
 
