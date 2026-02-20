@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-export const AlertOverlay = styled.div`
+export const ModalBackdrop = styled.div`
   position: fixed;
   inset: 0;
   display: flex;
@@ -10,7 +10,7 @@ export const AlertOverlay = styled.div`
   z-index: 1000;
 `;
 
-export const AlertModal = styled.div`
+export const CustomModal = styled.div`
   width: min(360px, calc(100vw - 32px));
   border: 1px solid #2f2f2f;
   border-radius: 12px;
@@ -19,19 +19,19 @@ export const AlertModal = styled.div`
   padding: 18px 16px 14px;
 `;
 
-export const AlertTitle = styled.h2`
+export const ModalTitle = styled.h2`
   margin: 0;
   font-size: 16px;
 `;
 
-export const AlertDescription = styled.p`
+export const ModalDescription = styled.p`
   margin: 10px 0 16px;
   font-size: 13px;
   color: #b7b7b7;
   line-height: 1.45;
 `;
 
-export const AlertButton = styled.button`
+export const ModalButton = styled.button`
   height: 32px;
   padding: 0 12px;
   border-radius: 8px;

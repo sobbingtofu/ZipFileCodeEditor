@@ -1,1 +1,1 @@
-export * from "./components/ZipAlertModal";
+export * from "./components/CustomModal";

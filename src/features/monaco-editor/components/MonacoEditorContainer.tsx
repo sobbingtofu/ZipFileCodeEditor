@@ -49,6 +49,7 @@ function MonacoEditorContainer({onFlushContentToStoreChange}: MonacoEditorContai
 
   const handleTabClose = (event: MouseEvent<HTMLButtonElement>, filePath: string) => {
     event.stopPropagation();
+
     flushContentToStore(filePath);
     closeFileTab(filePath);
   };
