@@ -27,26 +27,63 @@ export const EmptyTreeContainer = styled.div<{$isHovering: boolean}>`
   background: #1b1b1b;
   transition: outline-color 0.2s;
 
-  > * {
+  > * > * {
     transform: scale(1);
     transform-origin: center;
     transition: transform 0.2s ease;
     will-change: transform;
   }
 
-  &:hover > * {
-    transform: scale(1.03);
+  &:hover > * > * {
+    transform: scale(1.05);
   }
+`;
+
+export const EmptyMessageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  color: #979797;
+  font-size: 13px;
+  padding: 60px 24px 8px 8px;
+  cursor: default;
+  user-select: none;
 `;
 
 export const TreeScrollArea = styled.div<{$isHovering: boolean}>`
   overflow: auto;
   flex: 1;
   padding: 6px 4px 10px;
+  background: #161616;
+  outline: 1px solid ${({$isHovering}) => ($isHovering ? "#343434" : "#2b2b2b")};
+  outline-offset: -1px;
+
+  scrollbar-color: #333333 #161616;
+
+  &::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #161616;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 999px;
+    border: 2px solid #161616;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #3a3a3a;
+  }
 `;
 
 export const TreeNodeDiv = styled.div<{$depth: number; $isActive: boolean}>`
-  width: 100%;
+  min-width: 200px;
   border: 0;
   text-align: left;
   background: ${({$isActive}) => ($isActive ? "#2b2b2b" : "transparent")};
@@ -65,17 +102,4 @@ export const TreeNodeDiv = styled.div<{$depth: number; $isActive: boolean}>`
 export const FolderPrefix = styled.span`
   display: inline-block;
   width: 22px;
-`;
-
-export const EmptyMessageContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  color: #979797;
-  font-size: 13px;
-  padding: 60px 24px 8px 8px;
-  cursor: default;
-  user-select: none;
 `;
