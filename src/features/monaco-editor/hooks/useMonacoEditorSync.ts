@@ -33,6 +33,13 @@ function useMonacoEditorSync({
   const monacoRef = useRef<typeof MonacoEditor | null>(null);
   const editorRef = useRef<MonacoEditor.editor.IStandaloneCodeEditor | null>(null);
   const modelCacheRef = useRef<Map<string, MonacoEditor.editor.ITextModel>>(new Map());
+
+  /**
+   * - (key: 파일 경로, value: 모델의 alternativeVersionId)
+   * - alternativeVersionId : 변경될 때마다 계속 증가, undo/redo로 이전 상태로 돌아오면 같은 값을 다시 가짐
+   */
+  const savedAlternativeVersionIdByPathRef = useRef<Map<string, number>>(new Map());
+
   const activeModelPathRef = useRef<string | null>(null);
   const flushDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onDidChangeModelContentRef = useRef<MonacoEditor.IDisposable | null>(null);
@@ -40,9 +47,7 @@ function useMonacoEditorSync({
 
   /**
    * 현재 편집 중인 모델의 내용을 Zustand 스토어에 저장하는 함수
-   * - 입력 중에는 Zustand를 업데이트하지 않고 Monaco 내부 상태를 사용
-   * - 탭 전환/저장 시점에만 Zustand로 내용을 커밋
-   * - 편집 중인 내용이 있을 경우 이를 우선적으로 저장, 편집 중인 내용이 없을 경우 Monaco 모델의 내용을 저장
+   * - 입력 중에는 Zustand를 업데이트하지 않고 Monaco 내부 상태를 사용, 사용자가 직접 저장 시에만 Zustand 업데이트
    * - 특정 파일 경로를 지정하면 해당 파일의 내용을 저장, 지정하지 않으면 현재 활성 모델의 내용을 저장
    */
   const flushMonacoToZustandByFilePath = useCallback(
@@ -53,8 +58,11 @@ function useMonacoEditorSync({
       }
       const model = modelCacheRef.current.get(pathToFlush);
       if (model) {
-        // 편집 중인 내용이 없고 Monaco 모델이 존재하는 경우 모델의 내용을 zustand에 반영
+        // 모델의 내용을 Zustand에 반영
         updateFileContentByPath(pathToFlush, model.getValue());
+
+        // zustand에 반영하는 시점의 alternativeVersionId를 존재 여부 판단 baseLine으로 갱신
+        savedAlternativeVersionIdByPathRef.current.set(pathToFlush, model.getAlternativeVersionId());
       }
     },
     [updateFileContentByPath],
@@ -62,7 +70,11 @@ function useMonacoEditorSync({
 
   const flushAllMonacoToZustand = useCallback(() => {
     for (const [modelPath, model] of modelCacheRef.current.entries()) {
+      // 모델의 내용을 Zustand에 반영
       updateFileContentByPath(modelPath, model.getValue());
+
+      // zustand에 반영하는 시점의 alternativeVersionId를 존재 여부 판단 baseLine으로 갱신
+      savedAlternativeVersionIdByPathRef.current.set(modelPath, model.getAlternativeVersionId());
     }
   }, [updateFileContentByPath]);
 
@@ -89,8 +101,12 @@ function useMonacoEditorSync({
       }
 
       isModelValueSyncingRef.current = true;
+      // 모델의 내용을 zustand의 파일 노드 내용물로 덮어쓰기
       model.setValue(targetNode.content ?? "");
       isModelValueSyncingRef.current = false;
+
+      // 롤백이 적용된 시점의 새로운 alternativeVersionId를 변경사항 존재 여부 판단 baseLine으로 갱신
+      savedAlternativeVersionIdByPathRef.current.set(targetPath, model.getAlternativeVersionId());
       setHaveUnsavedChangeByPath(targetPath, false);
     },
     [setHaveUnsavedChangeByPath],
@@ -106,12 +122,21 @@ function useMonacoEditorSync({
     (monaco: typeof MonacoEditor, fileNode: FileNode): MonacoEditor.editor.ITextModel => {
       const cachedModel = modelCacheRef.current.get(fileNode.path);
       if (cachedModel) {
+        if (!savedAlternativeVersionIdByPathRef.current.has(fileNode.path)) {
+          // 모델이 새로 재사용 시
+          // 해당 모델의 alternativeVersionId를 ref에 등록해서 이후 변경사항 존재 여부 판단 baseLine으로 활용
+          savedAlternativeVersionIdByPathRef.current.set(fileNode.path, cachedModel.getAlternativeVersionId());
+        }
         return cachedModel;
       }
 
       const modelUri = monaco.Uri.parse(`inmemory://zip-editor/${encodeURIComponent(fileNode.path)}`);
       const model = monaco.editor.createModel(fileNode.content ?? "", getLanguageByFilePath(fileNode.path), modelUri);
       modelCacheRef.current.set(fileNode.path, model);
+
+      // 모델이 새로 생성 시
+      // 해당 모델의 alternativeVersionId를 ref에 등록해서 이후 변경사항 존재 여부 판단 baseLine으로 활용
+      savedAlternativeVersionIdByPathRef.current.set(fileNode.path, model.getAlternativeVersionId());
       return model;
     },
     [],
@@ -160,7 +185,27 @@ function useMonacoEditorSync({
           return;
         }
 
-        setHaveUnsavedChangeByPath(currentActivePath, true);
+        const currentModel = editor.getModel();
+        if (!currentModel) {
+          return;
+        }
+
+        // 현재 모델의 alternativeVersionId와 baseline을 비교하여 변경사항 존재 여부 판단
+        const savedAlternativeVersionId = savedAlternativeVersionIdByPathRef.current.get(currentActivePath);
+        const isContentSyncedWithZustand =
+          savedAlternativeVersionId !== undefined &&
+          currentModel.getAlternativeVersionId() === savedAlternativeVersionId;
+
+        setHaveUnsavedChangeByPath(currentActivePath, !isContentSyncedWithZustand);
+
+        if (isContentSyncedWithZustand) {
+          if (flushDebounceTimerRef.current) {
+            clearTimeout(flushDebounceTimerRef.current);
+            flushDebounceTimerRef.current = null;
+          }
+          return;
+        }
+
         if (autoSave) {
           if (flushDebounceTimerRef.current) {
             clearTimeout(flushDebounceTimerRef.current);
@@ -189,6 +234,7 @@ function useMonacoEditorSync({
 
       modelCacheRef.current.forEach((model) => model.dispose());
       modelCacheRef.current.clear();
+      savedAlternativeVersionIdByPathRef.current.clear();
       activeModelPathRef.current = null;
     };
   }, [autoSave, flushMonacoToZustandByFilePath, setHaveUnsavedChangeByPath]);
