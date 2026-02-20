@@ -13,6 +13,29 @@ export const TabContainer = styled.div`
   overflow-x: auto;
   border-bottom: 1px solid #2a2a2a;
   background-color: #181818;
+
+  overflow-x: auto;
+
+  scrollbar-color: #333333 #161616;
+
+  &::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #161616;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 999px;
+    border: 2px solid #161616;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #3a3a3a;
+  }
 `;
 
 export const TabDiv = styled.div<{$isActive: boolean}>`
@@ -66,6 +89,7 @@ export const EditorBody = styled.div`
   min-height: 0;
   position: relative;
   overflow: hidden;
+  padding: 24px 0px 0px 0px;
 `;
 
 export const MonacoHost = styled.div`
