@@ -5,3 +5,9 @@ export * from "./SaveIcon";
 
 export * from "./DarkModeIcon";
 export * from "./LightModeIcon";
+
+export * from "./CollapseIcon";
+export * from "./AddFileIcon";
+export * from "./AddFolderIcon";
+export * from "./RenameIcon";
+export * from "./DeleteIcon";

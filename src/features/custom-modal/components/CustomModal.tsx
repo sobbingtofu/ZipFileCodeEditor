@@ -11,14 +11,34 @@ type ModalButtonInfo = {
   btnFunc: () => void;
 };
 
-type CustomModalProps = {
-  modalType?: "alert" | "confirm" | "multiBtns";
+type AlertModalProps = {
+  modalType?: "alert";
   isOpen: boolean;
   onClose: () => void;
   message?: string;
-  onConfirm?: () => void;
-  btnInfo?: ModalButtonInfo[];
+  onConfirm?: never;
+  btnInfo?: never;
 };
+
+type ConfirmModalProps = {
+  modalType: "confirm";
+  isOpen: boolean;
+  onClose: () => void;
+  message?: string;
+  onConfirm: () => void;
+  btnInfo?: never;
+};
+
+type MultiBtnsModalProps = {
+  modalType: "multiBtns";
+  isOpen: boolean;
+  onClose: () => void;
+  message?: string;
+  btnInfo: ModalButtonInfo[];
+  onConfirm?: never;
+};
+
+type CustomModalProps = AlertModalProps | ConfirmModalProps | MultiBtnsModalProps;
 
 export function CustomModal({
   modalType = "alert",
@@ -32,6 +52,7 @@ export function CustomModal({
   const modalRef = useRef<HTMLDivElement | null>(null);
   const theme = useThemeStore((state) => state.theme);
 
+  // 포털 안전장치
   useEffect(() => {
     setIsMounted(true);
     return () => {
@@ -70,7 +91,14 @@ export function CustomModal({
   return createPortal(
     <S.ModalBackdrop $themeMode={theme} onClick={onClose}>
       <S.CustomModal $themeMode={theme} ref={modalRef} tabIndex={-1} onClick={(event) => event.stopPropagation()}>
-        <S.ModalDescription $themeMode={theme}>{message}</S.ModalDescription>
+        <S.ModalDescription $themeMode={theme}>
+          {message.split("\n").map((line, index) => (
+            <span key={`${line}-${index}`}>
+              {line}
+              {index < message.split("\n").length - 1 && <br />}
+            </span>
+          ))}
+        </S.ModalDescription>
         <S.ModalButtonContainer>
           {modalType == "alert" && (
             <S.ModalButton $themeMode={theme} type="button" onClick={onClose}>
