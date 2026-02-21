@@ -10,6 +10,7 @@ interface UseMonacoEditorSyncProps {
   activeFilePath: string | null;
   activeFile: FileNode | null;
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
+  onFlushActiveFileMonacoToZustandChange: (flushActiveFileMonacoToZustand: () => void) => void;
   autoSave?: boolean;
   handleTabClose: (filePath: string) => void;
 }
@@ -27,6 +28,7 @@ function useMonacoEditorSync({
   onFlushAllMonacoToZustandChange,
   autoSave = false,
   handleTabClose,
+  onFlushActiveFileMonacoToZustandChange,
 }: UseMonacoEditorSyncProps): UseMonacoEditorSyncResult {
   const updateFileContentByPath = useFileStore((state) => state.updateFileContentByPath);
   const setHaveUnsavedChangeByPath = useFileStore((state) => state.setHaveUnsavedChangeByPath);
@@ -152,6 +154,15 @@ function useMonacoEditorSync({
       onFlushAllMonacoToZustandChange(() => {});
     };
   }, [onFlushAllMonacoToZustandChange, flushAllMonacoToZustand]);
+
+  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 flushActiveFileMonacoToZustand 함수 전달
+  useEffect(() => {
+    onFlushActiveFileMonacoToZustandChange(flushMonacoToZustandByFilePath);
+
+    return () => {
+      onFlushActiveFileMonacoToZustandChange(() => {});
+    };
+  }, [onFlushActiveFileMonacoToZustandChange, flushMonacoToZustandByFilePath]);
 
   // Monaco Editor 초기화 및 정리
   useEffect(() => {

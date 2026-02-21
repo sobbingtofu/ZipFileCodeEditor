@@ -13,7 +13,7 @@ export const TopBar = styled.header`
   align-items: center;
   justify-content: flex-start;
   gap: 48px;
-  padding: 10px 14px;
+  padding: 10px 20px 10px 14px;
   border-bottom: 1px solid #2a2a2a;
   background: #171717;
 `;
@@ -24,7 +24,21 @@ export const TopBarTitle = styled.h1`
   font-weight: 600;
 `;
 
-export const TopBarActions = styled.div`
+export const TopBarActionContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  flex: 1;
+  justify-content: space-between;
+`;
+
+export const TopBarFileActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+export const TopBarEditorActions = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -50,7 +64,7 @@ export const HiddenFileInput = styled.input`
   display: none;
 `;
 
-export const DownloadButton = styled.button`
+export const TopBarButton = styled.button`
   height: 32px;
   padding: 0 12px;
   border-radius: 8px;

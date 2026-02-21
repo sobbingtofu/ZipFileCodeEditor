@@ -7,11 +7,14 @@ import * as S from "@/app/page.styles";
 import {useHandleZipDownload, useHandleZipUpload} from "@/src/features/zip-handler";
 import {MonacoEditorContainer} from "@/src/features/monaco-editor";
 import {CustomModal} from "@/src/features/custom-modal";
+import {useEditorStore} from "@/src/store/useEditorStore";
+import {RedoIcon, SaveIcon, UndoIcon} from "@/public/icon";
 
 export default function Home() {
   const bodyLayoutRef = useRef<HTMLDivElement>(null);
   const [isUnsavedAlertOpen, setIsUnsavedAlertOpen] = useState(false);
   const [flushAllMonacoToZustand, setFlushAllMonacoToZustand] = useState<() => void>(() => () => {});
+  const [flushActiveFileMonacoToZustand, setFlushActiveFileMonacoToZustand] = useState<() => void>(() => () => {});
 
   const {leftPanelWidth, handleResizeStart} = useHandleTreeContainerWidth({bodyLayoutRef});
 
@@ -25,6 +28,10 @@ export default function Home() {
 
   const handleFlushAllMonacoToZustandChange = useCallback((flushAll: () => void) => {
     setFlushAllMonacoToZustand(() => flushAll);
+  }, []);
+
+  const handleFlushActiveFileMonacoToZustandChange = useCallback((flushActive: () => void) => {
+    setFlushActiveFileMonacoToZustand(() => flushActive);
   }, []);
 
   const handleCloseUnsavedModal = () => {
@@ -51,22 +58,60 @@ export default function Home() {
     await handleDownloadZip();
   };
 
+  const activeFilePath = useEditorStore((state) => state.activeFilePath);
+
   return (
     <S.Main>
       <S.TopBar>
         <S.TopBarTitle>Zip File Code Editor</S.TopBarTitle>
-        <S.TopBarActions>
-          <S.ZipUploadLabel htmlFor="zip-upload-input">Zip 업로드</S.ZipUploadLabel>
-          <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
+        <S.TopBarActionContainer>
+          <S.TopBarFileActions>
+            <S.ZipUploadLabel htmlFor="zip-upload-input" aria-label="Upload-Zip">
+              Zip 업로드
+            </S.ZipUploadLabel>
+            <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
 
-          <S.DownloadButton
-            type="button"
-            onClick={handleDownloadButtonClick}
-            disabled={fileTree.length === 0 || isLoading}
-          >
-            Zip 다운로드
-          </S.DownloadButton>
-        </S.TopBarActions>
+            <S.TopBarButton
+              type="button"
+              onClick={handleDownloadButtonClick}
+              disabled={fileTree.length === 0 || isLoading}
+              aria-label="Download-Zip"
+            >
+              Zip 다운로드
+            </S.TopBarButton>
+          </S.TopBarFileActions>
+          {activeFilePath && (
+            <S.TopBarEditorActions>
+              <S.TopBarButton
+                type="button"
+                aria-label="Undo"
+                title="Undo / Ctrl+Z"
+                onClick={() => {}}
+                disabled={fileTree.length === 0 || isLoading}
+              >
+                <UndoIcon />
+              </S.TopBarButton>
+              <S.TopBarButton
+                type="button"
+                aria-label="Redo"
+                title="Redo / Ctrl+Y"
+                onClick={() => {}}
+                disabled={fileTree.length === 0 || isLoading}
+              >
+                <RedoIcon />
+              </S.TopBarButton>
+              <S.TopBarButton
+                type="button"
+                aria-label="Save"
+                title="Save / Ctrl+S"
+                onClick={() => flushActiveFileMonacoToZustand()}
+                disabled={fileTree.length === 0 || isLoading}
+              >
+                <SaveIcon />
+              </S.TopBarButton>
+            </S.TopBarEditorActions>
+          )}
+        </S.TopBarActionContainer>
       </S.TopBar>
 
       <S.BodyLayout ref={bodyLayoutRef}>
@@ -77,7 +122,10 @@ export default function Home() {
         <S.PanelResizer onMouseDown={handleResizeStart} />
 
         <S.RightPanel>
-          <MonacoEditorContainer onFlushAllMonacoToZustandChange={handleFlushAllMonacoToZustandChange} />
+          <MonacoEditorContainer
+            onFlushAllMonacoToZustandChange={handleFlushAllMonacoToZustandChange}
+            onFlushActiveFileMonacoToZustandChange={handleFlushActiveFileMonacoToZustandChange}
+          />
         </S.RightPanel>
       </S.BodyLayout>
       <CustomModal

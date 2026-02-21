@@ -9,7 +9,7 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
-import {UploadIcon} from "./UploadIcon";
+import {UploadIcon} from "@/public/icon";
 import {HiddenFileInput} from "@/app/page.styles";
 
 function FileTree() {

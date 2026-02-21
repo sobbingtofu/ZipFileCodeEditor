@@ -1,0 +1,4 @@
+export * from "./UploadIcon";
+export * from "./UndoIcon";
+export * from "./RedoIcon";
+export * from "./SaveIcon";

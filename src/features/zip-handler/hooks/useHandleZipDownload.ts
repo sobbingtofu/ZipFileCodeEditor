@@ -3,6 +3,7 @@ import {createZipBlobFromTree} from "../logic/zipService";
 
 function useHandleZipDownload() {
   const handleDownloadZip = async () => {
+    // getState()는 호출된 시점의 상태를 한 번 읽어오며 이후의 변경 사항을 추적하지 않으며 리렌더링 유발X (비구독형 활용)
     const latestTree = useFileStore.getState().fileTree;
     if (latestTree.length === 0) {
       return;
