@@ -3,5 +3,7 @@ export * from "./components/FileTreeNode";
 export * from "./logic/findFirstFileNode";
 export * from "./logic/findNodeByPath";
 export * from "./logic/renameFileLogic";
+export * from "./logic/addFileFolderLogic";
 export * from "./hooks/useHandleTreeContainerWidth";
 export * from "./hooks/useRenameFile";
+export * from "./hooks/useAddFile";

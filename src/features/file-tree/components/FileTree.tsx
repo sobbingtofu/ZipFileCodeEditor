@@ -1,6 +1,6 @@
 "use client";
 
-import {DragEvent, useMemo, useRef, useState} from "react";
+import {DragEvent, KeyboardEvent, MouseEvent, useEffect, useMemo, useRef, useState} from "react";
 
 import * as S from "@/src/features/file-tree/components/FileTree.styles";
 
@@ -13,13 +13,16 @@ import {AddFileIcon, AddFolderIcon, CollapseIcon, RenameIcon, UploadIcon} from "
 import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
 import {useRenameFile} from "../hooks/useRenameFile";
+import {useAddFile} from "../hooks/useAddFile";
 
 function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
   const selectedFileFolderPath = useEditorStore((state) => state.selectedFileFolderPath);
+  const setActiveFilePath = useEditorStore((state) => state.setActiveFilePath);
   const hasNodes = useMemo(() => fileTree.length > 0, [fileTree]);
   const theme = useThemeStore((state) => state.theme);
   const treeScrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const pendingRootAddInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isHovering, setIsHovering] = useState(false);
   const [isTreeAlertOpen, setIsTreeAlertOpen] = useState(false);
@@ -28,6 +31,26 @@ function FileTree() {
   const [collapseAllSignal, setCollapseAllSignal] = useState(0);
 
   const {handleZipFileDrop, handleZipFileInputChange} = useHandleZipUpload();
+
+  const {
+    pendingAddTargetFolderPath,
+    pendingAddInputValue,
+    setPendingAddInputValue,
+    handleAddFileSubmit,
+    handleAddFileCancel,
+    handleAddFileBtnClick,
+  } = useAddFile({
+    fileTree,
+    selectedFileFolderPath,
+    onInvalidAddFileName: () => {
+      setTreeErrMsg("파일 이름에는 특수문자 /와 \\를 사용할 수 없습니다.");
+      setIsTreeAlertOpen(true);
+    },
+    onOverlapFileName: () => {
+      setTreeErrMsg("같은 이름의 파일이 이미 존재합니다.");
+      setIsTreeAlertOpen(true);
+    },
+  });
 
   const {
     renamingTargetPath,
@@ -73,6 +96,36 @@ function FileTree() {
     setCollapseAllSignal((prev) => prev + 1);
   };
 
+  const handleTreeScrollAreaClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    setActiveFilePath(null);
+  };
+
+  // pendingAddTargetFolderPath가 null(root 위치에 파일추가하는 경우)
+  useEffect(() => {
+    if (pendingAddTargetFolderPath !== null || !pendingRootAddInputRef.current) {
+      return;
+    }
+
+    pendingRootAddInputRef.current.focus();
+  }, [pendingAddTargetFolderPath]);
+
+  const handlePendingAddInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAddFileSubmit();
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleAddFileCancel();
+    }
+  };
+
   return (
     <S.TreeContainer $themeMode={theme}>
       <S.TreeHeader $themeMode={theme}>
@@ -93,7 +146,12 @@ function FileTree() {
             </S.TreeHeaderButton>
 
             {/* 파일 추가 */}
-            <S.TreeHeaderButton $themeMode={theme} aria-label="Add File" title="Add File" onClick={() => {}}>
+            <S.TreeHeaderButton
+              $themeMode={theme}
+              aria-label="Add File"
+              title="Add File"
+              onClick={handleAddFileBtnClick}
+            >
               <AddFileIcon />
             </S.TreeHeaderButton>
 
@@ -152,6 +210,7 @@ function FileTree() {
           ref={treeScrollAreaRef}
           $themeMode={theme}
           $isHovering={isHovering}
+          onClick={handleTreeScrollAreaClick}
           onMouseOver={() => {
             if (hasNodes) {
               setIsHovering(true);
@@ -176,8 +235,29 @@ function FileTree() {
               onRenameChange={setRenameInputValue}
               onRenameSubmit={handleRenameSubmit}
               onRenameCancel={handleRenameCancel}
+              addTargetFolderPath={pendingAddTargetFolderPath}
+              pendingAddInputValue={pendingAddInputValue}
+              setPendingAddInputValue={setPendingAddInputValue}
+              handleAddFileSubmit={handleAddFileSubmit}
+              handleAddFileCancel={handleAddFileCancel}
             />
           ))}
+
+          {pendingAddTargetFolderPath === null && (
+            <S.TreeNodeDiv $depth={0} $isActive={false} $themeMode={theme}>
+              <S.FolderPrefix>📄</S.FolderPrefix>
+              <S.RenameInputWrapper onClick={(event) => event.stopPropagation()}>
+                <S.RenameInput
+                  ref={pendingRootAddInputRef}
+                  $themeMode={theme}
+                  value={pendingAddInputValue}
+                  onChange={(event) => setPendingAddInputValue(event.target.value)}
+                  onBlur={handleAddFileSubmit}
+                  onKeyDown={handlePendingAddInputKeyDown}
+                />
+              </S.RenameInputWrapper>
+            </S.TreeNodeDiv>
+          )}
         </S.TreeScrollArea>
       )}
       <CustomModal isOpen={isTreeAlertOpen} onClose={handleCloseTreeAlert} message={treeErrMsg} />

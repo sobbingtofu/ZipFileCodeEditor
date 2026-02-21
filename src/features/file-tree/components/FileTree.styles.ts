@@ -77,7 +77,7 @@ export const EmptyMessageContainer = styled.div<{$themeMode: ThemeMode}>`
 export const TreeScrollArea = styled.div<{$isHovering: boolean; $themeMode: ThemeMode}>`
   overflow: auto;
   flex: 1;
-  padding: 6px 4px 10px;
+  padding: 6px 4px 60px;
   background: ${({$themeMode}) => ($themeMode === "light" ? "#fafafa" : "#161616")};
   outline: 1px solid
     ${({$isHovering, $themeMode}) => {

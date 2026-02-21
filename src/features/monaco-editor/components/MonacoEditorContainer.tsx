@@ -41,7 +41,6 @@ function MonacoEditorContainer({
   // selectedFileFolderPath가 바뀌면, 폴더가 아니라 파일일 때에만 에디터 업뎃
   useEffect(() => {
     if (!selectedFileFolderPath) {
-      setEditorActiveFilePath(null);
       return;
     }
 
@@ -106,6 +105,15 @@ function MonacoEditorContainer({
     setActiveFilePath(filePath);
   };
 
+  const handleEditorBodyMouseDownCapture = () => {
+    if (!editorActiveFilePath || selectedFileFolderPath === editorActiveFilePath) {
+      return;
+    }
+
+    triggerRevealFilePath(editorActiveFilePath);
+    setActiveFilePath(editorActiveFilePath);
+  };
+
   const handleCloseSaveCheckModal = () => {
     setIsSaveModalOpen(false);
   };
@@ -167,7 +175,7 @@ function MonacoEditorContainer({
           <span>{editorActiveFilePath.replace(/\\/g, "/").replace(/\//g, " > ")}</span>
         </S.PathNameIndicatorBar>
       )}
-      <S.EditorBody>
+      <S.EditorBody onMouseDownCapture={handleEditorBodyMouseDownCapture}>
         {!editorActiveFilePath && <S.EmptyState $themeMode={theme}>왼쪽 파일 트리에서 파일을 선택하세요.</S.EmptyState>}
 
         {editorActiveFilePath && activeFile?.isBinary && (
