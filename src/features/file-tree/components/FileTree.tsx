@@ -14,6 +14,7 @@ import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
 import {useRenameFile} from "../hooks/useRenameFile";
 import {useAddFile} from "../hooks/useAddFile";
+import {useAddFolder} from "../hooks/useAddFolder";
 
 function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
@@ -23,6 +24,7 @@ function FileTree() {
   const theme = useThemeStore((state) => state.theme);
   const treeScrollAreaRef = useRef<HTMLDivElement | null>(null);
   const pendingRootAddInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingRootAddFolderInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isHovering, setIsHovering] = useState(false);
   const [isTreeAlertOpen, setIsTreeAlertOpen] = useState(false);
@@ -48,6 +50,26 @@ function FileTree() {
     },
     onOverlapFileName: () => {
       setTreeErrMsg("같은 이름의 파일이 이미 존재합니다.");
+      setIsTreeAlertOpen(true);
+    },
+  });
+
+  const {
+    pendingAddTargetFolderPath: pendingAddFolderTargetFolderPath,
+    pendingAddInputValue: pendingAddFolderInputValue,
+    setPendingAddInputValue: setPendingAddFolderInputValue,
+    handleAddFolderSubmit,
+    handleAddFolderCancel,
+    handleAddFolderBtnClick,
+  } = useAddFolder({
+    fileTree,
+    selectedFileFolderPath,
+    onInvalidAddFolderName: () => {
+      setTreeErrMsg("폴더 이름에는 특수문자 /와 \\를 사용할 수 없습니다.");
+      setIsTreeAlertOpen(true);
+    },
+    onOverlapFolderName: () => {
+      setTreeErrMsg("같은 이름의 폴더가 이미 존재합니다.");
       setIsTreeAlertOpen(true);
     },
   });
@@ -113,6 +135,14 @@ function FileTree() {
     pendingRootAddInputRef.current.focus();
   }, [pendingAddTargetFolderPath]);
 
+  useEffect(() => {
+    if (pendingAddFolderTargetFolderPath !== null || !pendingRootAddFolderInputRef.current) {
+      return;
+    }
+
+    pendingRootAddFolderInputRef.current.focus();
+  }, [pendingAddFolderTargetFolderPath]);
+
   const handlePendingAddInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -123,6 +153,19 @@ function FileTree() {
     if (event.key === "Escape") {
       event.preventDefault();
       handleAddFileCancel();
+    }
+  };
+
+  const handlePendingAddFolderInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAddFolderSubmit();
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleAddFolderCancel();
     }
   };
 
@@ -156,7 +199,12 @@ function FileTree() {
             </S.TreeHeaderButton>
 
             {/* 폴더 추가 */}
-            <S.TreeHeaderButton $themeMode={theme} aria-label="Add Folder" title="Add Folder" onClick={() => {}}>
+            <S.TreeHeaderButton
+              $themeMode={theme}
+              aria-label="Add Folder"
+              title="Add Folder"
+              onClick={handleAddFolderBtnClick}
+            >
               <AddFolderIcon />
             </S.TreeHeaderButton>
 
@@ -235,11 +283,16 @@ function FileTree() {
               onRenameChange={setRenameInputValue}
               onRenameSubmit={handleRenameSubmit}
               onRenameCancel={handleRenameCancel}
-              addTargetFolderPath={pendingAddTargetFolderPath}
-              pendingAddInputValue={pendingAddInputValue}
-              setPendingAddInputValue={setPendingAddInputValue}
+              addFileTargetFolderPath={pendingAddTargetFolderPath}
+              pendingAddFileInputValue={pendingAddInputValue}
+              setPendingAddFileInputValue={setPendingAddInputValue}
               handleAddFileSubmit={handleAddFileSubmit}
               handleAddFileCancel={handleAddFileCancel}
+              addFolderTargetFolderPath={pendingAddFolderTargetFolderPath}
+              pendingAddFolderInputValue={pendingAddFolderInputValue}
+              setPendingAddFolderInputValue={setPendingAddFolderInputValue}
+              handleAddFolderSubmit={handleAddFolderSubmit}
+              handleAddFolderCancel={handleAddFolderCancel}
             />
           ))}
 
@@ -254,6 +307,22 @@ function FileTree() {
                   onChange={(event) => setPendingAddInputValue(event.target.value)}
                   onBlur={handleAddFileSubmit}
                   onKeyDown={handlePendingAddInputKeyDown}
+                />
+              </S.RenameInputWrapper>
+            </S.TreeNodeDiv>
+          )}
+
+          {pendingAddFolderTargetFolderPath === null && (
+            <S.TreeNodeDiv $depth={0} $isActive={false} $themeMode={theme}>
+              <S.FolderPrefix>📁</S.FolderPrefix>
+              <S.RenameInputWrapper onClick={(event) => event.stopPropagation()}>
+                <S.RenameInput
+                  ref={pendingRootAddFolderInputRef}
+                  $themeMode={theme}
+                  value={pendingAddFolderInputValue}
+                  onChange={(event) => setPendingAddFolderInputValue(event.target.value)}
+                  onBlur={handleAddFolderSubmit}
+                  onKeyDown={handlePendingAddFolderInputKeyDown}
                 />
               </S.RenameInputWrapper>
             </S.TreeNodeDiv>

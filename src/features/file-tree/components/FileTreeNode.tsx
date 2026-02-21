@@ -17,11 +17,16 @@ interface FileTreeNodeProps {
   onRenameChange: (nextName: string) => void;
   onRenameSubmit: () => void;
   onRenameCancel: () => void;
-  addTargetFolderPath: string | null | undefined;
-  pendingAddInputValue: string;
-  setPendingAddInputValue: (nextName: string) => void;
+  addFileTargetFolderPath: string | null | undefined;
+  pendingAddFileInputValue: string;
+  setPendingAddFileInputValue: (nextName: string) => void;
   handleAddFileSubmit: () => void;
   handleAddFileCancel: () => void;
+  addFolderTargetFolderPath: string | null | undefined;
+  pendingAddFolderInputValue: string;
+  setPendingAddFolderInputValue: (nextName: string) => void;
+  handleAddFolderSubmit: () => void;
+  handleAddFolderCancel: () => void;
 }
 
 const FileTreeNode = memo(function FileTreeNode({
@@ -35,15 +40,21 @@ const FileTreeNode = memo(function FileTreeNode({
   onRenameChange,
   onRenameSubmit,
   onRenameCancel,
-  addTargetFolderPath: pendingAddTargetFolderPath,
-  pendingAddInputValue,
-  setPendingAddInputValue: onPendingAddInputChange,
-  handleAddFileSubmit: onPendingAddSubmit,
-  handleAddFileCancel: onPendingAddCancel,
+  addFileTargetFolderPath: pendingAddFileTargetFolderPath,
+  pendingAddFileInputValue,
+  setPendingAddFileInputValue: onPendingAddFileInputChange,
+  handleAddFileSubmit: onPendingAddFileSubmit,
+  handleAddFileCancel: onPendingAddFileCancel,
+  addFolderTargetFolderPath: pendingAddFolderTargetFolderPath,
+  pendingAddFolderInputValue,
+  setPendingAddFolderInputValue: onPendingAddFolderInputChange,
+  handleAddFolderSubmit: onPendingAddFolderSubmit,
+  handleAddFolderCancel: onPendingAddFolderCancel,
 }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
   const addFileInputRef = useRef<HTMLInputElement | null>(null);
+  const addFolderInputRef = useRef<HTMLInputElement | null>(null);
 
   const revealTargetPath = useFileStore((state) => state.showInTreeTargetPath);
   const revealSignal = useFileStore((state) => state.showSignal);
@@ -51,7 +62,8 @@ const FileTreeNode = memo(function FileTreeNode({
   const isFolder = node.type === "folder";
   const isActive = node.path === selectedFileFolderPath;
   const isRenaming = node.path === renamingTargetPath;
-  const isPendingAddInCurrentFolder = isFolder && pendingAddTargetFolderPath === node.path;
+  const isPendingAddFileInCurrentFolder = isFolder && pendingAddFileTargetFolderPath === node.path;
+  const isPendingAddFolderInCurrentFolder = isFolder && pendingAddFolderTargetFolderPath === node.path;
 
   const openFileTab = useEditorStore((state) => state.openFileTab);
   const setActiveFilePath = useEditorStore((state) => state.setActiveFilePath);
@@ -88,12 +100,20 @@ const FileTreeNode = memo(function FileTreeNode({
   }, [isRenaming]);
 
   useEffect(() => {
-    if (!isPendingAddInCurrentFolder || !addFileInputRef.current) {
+    if (!isPendingAddFileInCurrentFolder || !addFileInputRef.current) {
       return;
     }
 
     addFileInputRef.current.focus();
-  }, [isPendingAddInCurrentFolder]);
+  }, [isPendingAddFileInCurrentFolder]);
+
+  useEffect(() => {
+    if (!isPendingAddFolderInCurrentFolder || !addFolderInputRef.current) {
+      return;
+    }
+
+    addFolderInputRef.current.focus();
+  }, [isPendingAddFolderInCurrentFolder]);
 
   const handleClickNode = () => {
     if (isRenaming) {
@@ -125,13 +145,26 @@ const FileTreeNode = memo(function FileTreeNode({
   const handleAddFileInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      onPendingAddSubmit();
+      onPendingAddFileSubmit();
       return;
     }
 
     if (event.key === "Escape") {
       event.preventDefault();
-      onPendingAddCancel();
+      onPendingAddFileCancel();
+    }
+  };
+
+  const handleAddFolderInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      onPendingAddFolderSubmit();
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onPendingAddFolderCancel();
     }
   };
 
@@ -191,25 +224,46 @@ const FileTreeNode = memo(function FileTreeNode({
             onRenameChange={onRenameChange}
             onRenameSubmit={onRenameSubmit}
             onRenameCancel={onRenameCancel}
-            addTargetFolderPath={pendingAddTargetFolderPath}
-            pendingAddInputValue={pendingAddInputValue}
-            setPendingAddInputValue={onPendingAddInputChange}
-            handleAddFileSubmit={onPendingAddSubmit}
-            handleAddFileCancel={onPendingAddCancel}
+            addFileTargetFolderPath={pendingAddFileTargetFolderPath}
+            pendingAddFileInputValue={pendingAddFileInputValue}
+            setPendingAddFileInputValue={onPendingAddFileInputChange}
+            handleAddFileSubmit={onPendingAddFileSubmit}
+            handleAddFileCancel={onPendingAddFileCancel}
+            addFolderTargetFolderPath={pendingAddFolderTargetFolderPath}
+            pendingAddFolderInputValue={pendingAddFolderInputValue}
+            setPendingAddFolderInputValue={onPendingAddFolderInputChange}
+            handleAddFolderSubmit={onPendingAddFolderSubmit}
+            handleAddFolderCancel={onPendingAddFolderCancel}
           />
         ))}
 
-      {isPendingAddInCurrentFolder && isExpanded && (
+      {isPendingAddFileInCurrentFolder && isExpanded && (
         <S.TreeNodeDiv $depth={depth + 1} $isActive={false} $themeMode={theme}>
           <S.FolderPrefix>📄</S.FolderPrefix>
           <S.RenameInputWrapper onClick={(event) => event.stopPropagation()}>
             <S.RenameInput
               ref={addFileInputRef}
               $themeMode={theme}
-              value={pendingAddInputValue}
-              onChange={(event) => onPendingAddInputChange(event.target.value)}
-              onBlur={onPendingAddSubmit}
+              value={pendingAddFileInputValue}
+              onChange={(event) => onPendingAddFileInputChange(event.target.value)}
+              onBlur={onPendingAddFileSubmit}
               onKeyDown={handleAddFileInputKeyDown}
+            />
+          </S.RenameInputWrapper>
+        </S.TreeNodeDiv>
+      )}
+
+      {isPendingAddFolderInCurrentFolder && isExpanded && (
+        <S.TreeNodeDiv $depth={depth + 1} $isActive={false} $themeMode={theme}>
+          <S.FolderPrefix>📁</S.FolderPrefix>
+          <S.RenameInputWrapper onClick={(event) => event.stopPropagation()}>
+            <S.RenameInput
+              ref={addFolderInputRef}
+              $themeMode={theme}
+              value={pendingAddFolderInputValue}
+              onChange={(event) => onPendingAddFolderInputChange(event.target.value)}
+              onBlur={onPendingAddFolderSubmit}
+              onKeyDown={handleAddFolderInputKeyDown}
             />
           </S.RenameInputWrapper>
         </S.TreeNodeDiv>

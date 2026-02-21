@@ -7,3 +7,4 @@ export * from "./logic/addFileFolderLogic";
 export * from "./hooks/useHandleTreeContainerWidth";
 export * from "./hooks/useRenameFile";
 export * from "./hooks/useAddFile";
+export * from "./hooks/useAddFolder";

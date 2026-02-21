@@ -74,3 +74,39 @@ export const appendFileNodeToTargetFolder = (
     return node;
   });
 };
+
+/**
+ * 파일 트리에 새로운 폴더 노드를 추가하는 함수
+ * - nodes: 파일 트리 노드 배열
+ * - targetFolderPath: 새 폴더 노드를 추가할 대상 폴더의 경로 (null인 경우 루트에 추가)
+ * - newFolderNode: 추가할 새 폴더 노드
+ * - 반환값: 업데이트된 파일 트리 노드 배열
+ */
+export const appendFolderNodeToTargetFolder = (
+  nodes: FileNode[],
+  targetFolderPath: string | null,
+  newFolderNode: FileNode,
+): FileNode[] => {
+  if (!targetFolderPath) {
+    return sortNodes([...nodes, newFolderNode]);
+  }
+
+  return nodes.map((node) => {
+    if (node.type === "folder" && node.path === targetFolderPath) {
+      const nextChildren = sortNodes([...(node.children ?? []), newFolderNode]);
+      return {
+        ...node,
+        children: nextChildren,
+      };
+    }
+
+    if (node.type === "folder" && node.children) {
+      return {
+        ...node,
+        children: appendFolderNodeToTargetFolder(node.children, targetFolderPath, newFolderNode),
+      };
+    }
+
+    return node;
+  });
+};
