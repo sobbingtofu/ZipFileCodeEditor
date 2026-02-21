@@ -5,11 +5,15 @@ import type * as MonacoEditor from "monaco-editor";
 import {FileNode} from "@/src/types/fileType";
 import {findFileNodeInTree, useFileStore} from "@/src/store/useFileStore";
 import {getLanguageByFilePath} from "../logic/editorLogics";
+import {ThemeMode, useThemeStore} from "@/src/store/useThemeStore";
 
 interface UseMonacoEditorSyncProps {
   activeFilePath: string | null;
   activeFile: FileNode | null;
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
+  onFlushActiveFileMonacoToZustandChange: (flushActiveFileMonacoToZustand: () => void) => void;
+  onUndoActiveFileMonacoChange: (undoActiveFileMonaco: () => void) => void;
+  onRedoActiveFileMonacoChange: (redoActiveFileMonaco: () => void) => void;
   autoSave?: boolean;
   handleTabClose: (filePath: string) => void;
 }
@@ -27,9 +31,13 @@ function useMonacoEditorSync({
   onFlushAllMonacoToZustandChange,
   autoSave = false,
   handleTabClose,
+  onFlushActiveFileMonacoToZustandChange,
+  onUndoActiveFileMonacoChange,
+  onRedoActiveFileMonacoChange,
 }: UseMonacoEditorSyncProps): UseMonacoEditorSyncResult {
   const updateFileContentByPath = useFileStore((state) => state.updateFileContentByPath);
   const setHaveUnsavedChangeByPath = useFileStore((state) => state.setHaveUnsavedChangeByPath);
+  const theme = useThemeStore((state) => state.theme);
 
   const monacoHostRef = useRef<HTMLDivElement | null>(null);
   const monacoRef = useRef<typeof MonacoEditor | null>(null);
@@ -79,6 +87,26 @@ function useMonacoEditorSync({
       savedAlternativeVersionIdByPathRef.current.set(modelPath, model.getAlternativeVersionId());
     }
   }, [updateFileContentByPath]);
+
+  /** 현재 활성 파일의 Monaco 모델에서 undo 실행하는 함수 */
+  const undoActiveFileMonaco = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor || !activeModelPathRef.current) {
+      return;
+    }
+
+    editor.trigger("top-bar", "undo", null);
+  }, []);
+
+  /** 현재 활성 파일의 Monaco 모델에서 redo 실행하는 함수 */
+  const redoActiveFileMonaco = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor || !activeModelPathRef.current) {
+      return;
+    }
+
+    editor.trigger("top-bar", "redo", null);
+  }, []);
 
   /**
    * Monaco 모델의 내용을 Zustand 스토어에 저장된 내용으로 롤백하는 함수
@@ -153,6 +181,33 @@ function useMonacoEditorSync({
     };
   }, [onFlushAllMonacoToZustandChange, flushAllMonacoToZustand]);
 
+  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 flushActiveFileMonacoToZustand 함수 전달
+  useEffect(() => {
+    onFlushActiveFileMonacoToZustandChange(flushMonacoToZustandByFilePath);
+
+    return () => {
+      onFlushActiveFileMonacoToZustandChange(() => {});
+    };
+  }, [onFlushActiveFileMonacoToZustandChange, flushMonacoToZustandByFilePath]);
+
+  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 undoActiveFileMonaco 함수 전달
+  useEffect(() => {
+    onUndoActiveFileMonacoChange(undoActiveFileMonaco);
+
+    return () => {
+      onUndoActiveFileMonacoChange(() => {});
+    };
+  }, [onUndoActiveFileMonacoChange, undoActiveFileMonaco]);
+
+  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 redoActiveFileMonaco 함수 전달
+  useEffect(() => {
+    onRedoActiveFileMonacoChange(redoActiveFileMonaco);
+
+    return () => {
+      onRedoActiveFileMonacoChange(() => {});
+    };
+  }, [onRedoActiveFileMonacoChange, redoActiveFileMonaco]);
+
   // Monaco Editor 초기화 및 정리
   useEffect(() => {
     const createMonacoEditor = async () => {
@@ -172,7 +227,7 @@ function useMonacoEditorSync({
         automaticLayout: true,
         minimap: {enabled: false},
         fontSize: 13,
-        theme: "vs-dark",
+        theme: theme === "light" ? "vs" : "vs-dark",
       });
 
       onDidChangeModelContentRef.current = editor.onDidChangeModelContent(() => {
@@ -240,6 +295,14 @@ function useMonacoEditorSync({
       activeModelPathRef.current = null;
     };
   }, [autoSave, flushMonacoToZustandByFilePath, setHaveUnsavedChangeByPath]);
+
+  useEffect(() => {
+    if (!monacoRef.current) {
+      return;
+    }
+
+    monacoRef.current.editor.setTheme(theme === "light" ? "vs" : "vs-dark");
+  }, [theme]);
 
   // 선택된 파일이 변경될 때마다 해당 파일에 맞는 Monaco 모델로 에디터를 업데이트
   useEffect(() => {
