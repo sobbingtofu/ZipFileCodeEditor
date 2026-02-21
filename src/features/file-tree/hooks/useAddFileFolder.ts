@@ -5,7 +5,8 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 
 import {appendFileNodeToTargetFolder, appendFolderNodeToTargetFolder, getParentPath} from "../logic/addFileFolderLogic";
-import {findNodeByPath} from "../logic/treeHandlingLogic";
+import {getNodeByPathFromIndex} from "../logic/treeHandlingLogic";
+import {getIsEditableTextFile} from "../../zip-handler";
 
 interface UseAddFileFolderProps {
   fileTree: FileNode[];
@@ -25,6 +26,7 @@ function useAddFileFolder({
   onOverlapFolderName,
 }: UseAddFileFolderProps) {
   const setFileTree = useFileStore((state) => state.setFileTree);
+  const fileTreeIndex = useFileStore((state) => state.fileTreeIndex);
   const triggerShowInTreeTargetPath = useFileStore((state) => state.triggerShowInTreeTargetPath);
   const openFileTab = useEditorStore((state) => state.openFileTab);
   const setActiveFilePath = useEditorStore((state) => state.setActiveFilePath);
@@ -37,14 +39,14 @@ function useAddFileFolder({
   const [pendingAddFolderInputValue, setPendingAddFolderInputValue] = useState("");
 
   const getAddTargetFolderPath = useCallback((): string | null => {
-    const selectedNode = selectedFileFolderPath ? findNodeByPath(fileTree, selectedFileFolderPath) : null;
+    const selectedNode = selectedFileFolderPath ? getNodeByPathFromIndex(fileTreeIndex, selectedFileFolderPath) : null;
 
     if (!selectedNode) {
       return null;
     }
 
     return selectedNode.type === "folder" ? selectedNode.path : getParentPath(selectedNode.path);
-  }, [fileTree, selectedFileFolderPath]);
+  }, [fileTreeIndex, selectedFileFolderPath]);
 
   const getAddTargetFolderSiblings = useCallback(
     (targetFolderPath: string | null): FileNode[] => {
@@ -52,10 +54,10 @@ function useAddFileFolder({
         return fileTree;
       }
 
-      const targetFolderNode = findNodeByPath(fileTree, targetFolderPath);
+      const targetFolderNode = getNodeByPathFromIndex(fileTreeIndex, targetFolderPath);
       return targetFolderNode?.type === "folder" ? (targetFolderNode.children ?? []) : fileTree;
     },
-    [fileTree],
+    [fileTree, fileTreeIndex],
   );
 
   const handleAddFileCancel = useCallback(() => {
@@ -118,6 +120,8 @@ function useAddFileFolder({
 
     const nextFilePath = pendingAddTargetFolderPath ? `${pendingAddTargetFolderPath}/${nextInputName}` : nextInputName;
 
+    const isEditableText = getIsEditableTextFile(nextFilePath);
+
     const newFileNode: FileNode = {
       id: `node:${nextFilePath}`,
       name: nextInputName,
@@ -125,6 +129,7 @@ function useAddFileFolder({
       path: nextFilePath,
       content: "",
       isBinary: false,
+      isEditableText: isEditableText,
       haveUnsavedChange: false,
     };
 

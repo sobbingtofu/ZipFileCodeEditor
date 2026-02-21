@@ -145,3 +145,14 @@ export const ImageViewport = styled.div`
   width: 85%;
   height: 85%;
 `;
+
+export const EditorErrorFallback = styled.div<{$themeMode: ThemeMode}>`
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({$themeMode}) => ($themeMode === "light" ? "#ff4d4f" : "#ff7875")};
+  font-size: 14px;
+  padding: 20px;
+  text-align: center;
+`;

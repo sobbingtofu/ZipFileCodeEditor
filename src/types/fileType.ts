@@ -5,6 +5,7 @@ export interface FileNode {
   path: string;
   children?: FileNode[];
   content?: string;
+  isEditableText?: boolean;
   isBinary?: boolean;
   haveUnsavedChange?: boolean;
 }

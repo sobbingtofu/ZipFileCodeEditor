@@ -6,7 +6,7 @@ import {useEditorStore} from "@/src/store/useEditorStore";
 
 import {removeNodeByPath} from "../logic/deleteFileFolderLogic";
 import useScrollTreeToTargetFile from "./useScrollTreeToTargetFile";
-import {findNodeByPath} from "../logic/treeHandlingLogic";
+import {getNodeByPathFromIndex} from "../logic/treeHandlingLogic";
 
 interface UseDeleteFileFolderProps {
   fileTree: FileNode[];
@@ -16,6 +16,7 @@ interface UseDeleteFileFolderProps {
 
 function useDeleteFileFolder({fileTree, selectedFileFolderPath, treeScrollAreaRef}: UseDeleteFileFolderProps) {
   const setFileTree = useFileStore((state) => state.setFileTree);
+  const fileTreeIndex = useFileStore((state) => state.fileTreeIndex);
   const removeOpenedFileFolderPathsByPrefix = useEditorStore((state) => state.removeOpenedFileFolderPathsByPrefix);
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -27,8 +28,8 @@ function useDeleteFileFolder({fileTree, selectedFileFolderPath, treeScrollAreaRe
       return null;
     }
 
-    return findNodeByPath(fileTree, selectedFileFolderPath);
-  }, [fileTree, selectedFileFolderPath]);
+    return getNodeByPathFromIndex(fileTreeIndex, selectedFileFolderPath);
+  }, [fileTreeIndex, selectedFileFolderPath]);
 
   const deleteConfirmMessage = useMemo(() => {
     if (!selectedNode) {
