@@ -7,6 +7,8 @@ export const Main = styled.main<{$themeMode: ThemeMode}>`
   flex-direction: column;
   background: ${({$themeMode}) => ($themeMode === "light" ? "#f5f5f5" : "#111111")};
   color: ${({$themeMode}) => ($themeMode === "light" ? "#1f1f1f" : "#f0f0f0")};
+  min-width: 835px;
+  overflow-x: auto;
 `;
 
 export const TopBar = styled.header<{$themeMode: ThemeMode}>`

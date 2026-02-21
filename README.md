@@ -274,3 +274,4 @@ src/
 - 편집 불가 바이너리 타입(예: PDF) 전용 미리보기 확장
 - 대형 코드베이스 대응용 가상화 트리(`FileTree_VirtualTreeTest.tsx`) 본 적용
 - 검색/필터 기반 파일 빠른 이동(Command Palette 스타일)
+- 모바일에서도 어느정도 기능 사용할 수 있도록 반응형 UI 구현
