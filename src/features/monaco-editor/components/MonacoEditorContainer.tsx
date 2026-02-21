@@ -218,7 +218,7 @@ function MonacoEditorContainer({
           $themeMode={theme}
           style={{display: activeFile && !activeFile.isEditableText ? "flex" : "none"}}
         >
-          <p>이 파일은 편집할 수 없는 형식입니다.</p>
+          <p>이 파일은 열 수 없는 형식입니다.</p>
         </S.EditorErrorFallback>
       </S.EditorBody>
       <S.EditorBody style={{display: activeFile ? "block" : "none"}}></S.EditorBody>
