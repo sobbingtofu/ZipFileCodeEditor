@@ -2,7 +2,7 @@
 
 import {useEffect, useMemo, useState} from "react";
 import {FileNode} from "@/src/types/fileType";
-import {findFileNodeInTree, useFileStore} from "@/src/store/useFileStore";
+import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 
 import * as S from "./MonacoEditorContainer.styles";
@@ -12,6 +12,7 @@ import {useMonacoEditorSync} from "@/src/features/monaco-editor";
 import Image from "next/image";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useThemeStore} from "@/src/store/useThemeStore";
+import {findFileNodeInTree} from "../../file-tree";
 
 interface MonacoEditorContainerEditorContainerProps {
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;

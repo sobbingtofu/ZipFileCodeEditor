@@ -1,10 +1,10 @@
 import {RefObject, useCallback, useEffect, useState} from "react";
-import {findNodeByPath} from "../logic/findNodeByPath";
 import {useFileStore} from "@/src/store/useFileStore";
 import {FileNode} from "@/src/types/fileType";
 import {buildRenamedFilePath, updateTargetFileNodeInTree} from "../logic/renameFileLogic";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import useScrollTreeToTargetFile from "./useScrollTreeToTargetFile";
+import {findNodeByPath} from "../logic/treeHandlingLogic";
 
 interface UseRenameFileProps {
   treeScrollAreaRef: RefObject<HTMLDivElement | null>;

@@ -4,9 +4,9 @@ import {FileNode} from "@/src/types/fileType";
 import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 
-import {findNodeByPath} from "../logic/findNodeByPath";
 import {removeNodeByPath} from "../logic/deleteFileFolderLogic";
 import useScrollTreeToTargetFile from "./useScrollTreeToTargetFile";
+import {findNodeByPath} from "../logic/treeHandlingLogic";
 
 interface UseDeleteFileFolderProps {
   fileTree: FileNode[];

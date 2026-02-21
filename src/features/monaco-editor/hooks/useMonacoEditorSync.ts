@@ -3,9 +3,10 @@
 import {useCallback, useEffect, useRef} from "react";
 import type * as MonacoEditor from "monaco-editor";
 import {FileNode} from "@/src/types/fileType";
-import {findFileNodeInTree, useFileStore} from "@/src/store/useFileStore";
+import {useFileStore} from "@/src/store/useFileStore";
 import {getLanguageByFilePath} from "../logic/editorLogics";
-import {ThemeMode, useThemeStore} from "@/src/store/useThemeStore";
+import {useThemeStore} from "@/src/store/useThemeStore";
+import {findFileNodeInTree} from "../../file-tree";
 
 interface UseMonacoEditorSyncProps {
   editorActiveFilePath: string | null;

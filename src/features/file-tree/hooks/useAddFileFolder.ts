@@ -4,8 +4,8 @@ import {FileNode} from "@/src/types/fileType";
 import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 
-import {findNodeByPath} from "../logic/findNodeByPath";
 import {appendFileNodeToTargetFolder, appendFolderNodeToTargetFolder, getParentPath} from "../logic/addFileFolderLogic";
+import {findNodeByPath} from "../logic/treeHandlingLogic";
 
 interface UseAddFileFolderProps {
   fileTree: FileNode[];
