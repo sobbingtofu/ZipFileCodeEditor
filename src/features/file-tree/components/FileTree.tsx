@@ -9,7 +9,7 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
-import {CollapseIcon, UploadIcon} from "@/public/icon";
+import {AddFileIcon, AddFolderIcon, CollapseIcon, RenameIcon, UploadIcon} from "@/public/icon";
 import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
 
@@ -56,14 +56,34 @@ function FileTree() {
     <S.TreeContainer $themeMode={theme}>
       <S.TreeHeader $themeMode={theme}>
         <h3>파일 탐색기</h3>
-        <S.CollapseAllFolderButton
-          $themeMode={theme}
-          aria-label="Collapse All"
-          title="Collapse All Folders"
-          onClick={handleCollapseAllFolders}
-        >
-          <CollapseIcon />
-        </S.CollapseAllFolderButton>
+        {hasNodes && (
+          <S.TreeHeaderButtonWrapper>
+            {/* 이름 변경 */}
+            <S.TreeHeaderButton $themeMode={theme} aria-label="Rename" title="Rename" onClick={() => {}}>
+              <RenameIcon />
+            </S.TreeHeaderButton>
+
+            {/* 파일 추가 */}
+            <S.TreeHeaderButton $themeMode={theme} aria-label="Add File" title="Add File" onClick={() => {}}>
+              <AddFileIcon />
+            </S.TreeHeaderButton>
+
+            {/* 폴더 추가 */}
+            <S.TreeHeaderButton $themeMode={theme} aria-label="Add Folder" title="Add Folder" onClick={() => {}}>
+              <AddFolderIcon />
+            </S.TreeHeaderButton>
+
+            {/* 모든 폴더 접기 */}
+            <S.TreeHeaderButton
+              $themeMode={theme}
+              aria-label="Collapse All"
+              title="Collapse All Folders"
+              onClick={handleCollapseAllFolders}
+            >
+              <CollapseIcon />
+            </S.TreeHeaderButton>
+          </S.TreeHeaderButtonWrapper>
+        )}
       </S.TreeHeader>
       {!hasNodes && (
         <>

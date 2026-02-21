@@ -21,8 +21,16 @@ export const TreeHeader = styled.div<{$themeMode: ThemeMode}>`
   justify-content: space-between;
 `;
 
-export const CollapseAllFolderButton = styled.button<{$themeMode: ThemeMode}>`
+export const TreeHeaderButtonWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+`;
+
+export const TreeHeaderButton = styled.button<{$themeMode: ThemeMode}>`
   margin-top: 4px;
+  padding: 0px;
   border: none;
   background: transparent;
   color: ${({$themeMode}) => ($themeMode === "light" ? "#232323" : "#f0f0f0")};
