@@ -129,6 +129,15 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
     }),
   setHaveUnsavedChangeByPath: (targetPath, haveUnsavedChange) =>
     set((state) => {
+      const targetNode = state.fileTreeIndex.nodeByPath.get(targetPath);
+      if (targetNode?.type !== "file") {
+        return state;
+      }
+
+      if (Boolean(targetNode.haveUnsavedChange) === haveUnsavedChange) {
+        return state;
+      }
+
       const {nextFileTree, nextFileTreeIndex} = updateTreeAndIndexByPath(
         state.fileTree,
         state.fileTreeIndex,
