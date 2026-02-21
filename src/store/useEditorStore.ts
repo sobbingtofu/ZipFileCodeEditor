@@ -7,6 +7,7 @@ interface EditorStoreState {
   openedFilePaths: string[];
   openFileTab: (filePath: string) => void;
   closeFileTab: (filePath: string) => void;
+  removeOpenedFileFolderPathsByPrefix: (targetPath: string) => void;
   setActiveFilePath: (filePath: string | null) => void;
   replaceOpenedFilePath: (previousPath: string, nextPath: string) => void;
   resetEditorState: () => void;
@@ -36,6 +37,24 @@ export const useEditorStore = create<EditorStoreState>((set) => ({
       return {
         openedFilePaths: nextOpenedFilePaths,
         selectedFileFolderPath: nextActivePath,
+      };
+    }),
+
+  /**
+   * 특정 경로를 접두사로 가지는 열린 파일/폴더 경로들을 탭에서 모두 닫는 함수
+   */
+  removeOpenedFileFolderPathsByPrefix: (targetPath) =>
+    set((state) => {
+      const isDeletedPath = (path: string): boolean => path === targetPath || path.startsWith(`${targetPath}/`);
+
+      const nextOpenedFilePaths = state.openedFilePaths.filter((openedPath) => !isDeletedPath(openedPath));
+      const shouldResetSelected = state.selectedFileFolderPath !== null && isDeletedPath(state.selectedFileFolderPath);
+
+      return {
+        openedFilePaths: nextOpenedFilePaths,
+        selectedFileFolderPath: shouldResetSelected
+          ? (nextOpenedFilePaths[nextOpenedFilePaths.length - 1] ?? null)
+          : state.selectedFileFolderPath,
       };
     }),
 

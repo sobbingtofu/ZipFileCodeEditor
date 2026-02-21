@@ -26,7 +26,7 @@ export const ModalTitle = styled.h2`
 `;
 
 export const ModalDescription = styled.p<{$themeMode: ThemeMode}>`
-  font-size: 13px;
+  font-size: 14px;
   color: ${({$themeMode}) => ($themeMode === "light" ? "#666666" : "#b7b7b7")};
   line-height: 1.45;
 `;

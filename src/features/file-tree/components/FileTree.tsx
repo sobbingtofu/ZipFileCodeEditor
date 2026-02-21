@@ -9,11 +9,12 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
-import {AddFileIcon, AddFolderIcon, CollapseIcon, RenameIcon, UploadIcon} from "@/public/icon";
+import {AddFileIcon, AddFolderIcon, CollapseIcon, DeleteIcon, RenameIcon, UploadIcon} from "@/public/icon";
 import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
 import {useRenameFile} from "../hooks/useRenameFile";
 import {useAddFileFolder} from "../hooks/useAddFileFolder";
+import {useDeleteFileFolder} from "../hooks/useDeleteFileFolder";
 
 function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
@@ -33,10 +34,11 @@ function FileTree() {
 
   const {handleZipFileDrop, handleZipFileInputChange} = useHandleZipUpload();
 
+  // 파일/폴더 커스텀 훅 설정
   const {
-    pendingAddFileTargetFolderPath: pendingAddTargetFolderPath,
-    pendingAddFileInputValue: pendingAddInputValue,
-    setPendingAddFileInputValue: setPendingAddInputValue,
+    pendingAddTargetFolderPath,
+    pendingAddInputValue,
+    setPendingAddInputValue,
     handleAddFileSubmit,
     handleAddFileCancel,
     handleAddFileBtnClick,
@@ -67,6 +69,7 @@ function FileTree() {
     },
   });
 
+  // 파일/폴더 이름 변경 커스텀 훅 설정
   const {
     renamingTargetPath,
     renameInputValue,
@@ -85,15 +88,21 @@ function FileTree() {
     },
   });
 
+  // 파일/폴더 삭제 커스텀 훅 설정
+  const {isDeleteConfirmOpen, deleteConfirmMessage, handleDeleteBtnClick, handleDeleteConfirm, handleDeleteCancel} =
+    useDeleteFileFolder({
+      fileTree,
+      selectedFileFolderPath,
+    });
+
+  // 트리에 ZIP 파일 드래그&드롭 추가 관련
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
   };
-
   const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
-
   const executeDropAndProcessResult = async (event: DragEvent<HTMLDivElement>) => {
     const result = await handleZipFileDrop(event);
     if (result && !result.success) {
@@ -119,7 +128,7 @@ function FileTree() {
     setActiveFilePath(null);
   };
 
-  // pendingAddTargetFolderPath가 null(root 위치에 파일추가하는 경우)
+  // pendingAddTargetFolderPath가 null (root 위치에 파일/폴더추가하는 경우)
   useEffect(() => {
     if (pendingAddTargetFolderPath !== null || !pendingRootAddInputRef.current) {
       return;
@@ -179,6 +188,16 @@ function FileTree() {
               onClick={handleRenameBtnClick}
             >
               <RenameIcon />
+            </S.TreeHeaderButton>
+
+            {/* 삭제 */}
+            <S.TreeHeaderButton
+              $themeMode={theme}
+              aria-label="Delete"
+              title="Delete / Del"
+              onClick={handleDeleteBtnClick}
+            >
+              <DeleteIcon />
             </S.TreeHeaderButton>
 
             {/* 파일 추가 */}
@@ -323,6 +342,13 @@ function FileTree() {
         </S.TreeScrollArea>
       )}
       <CustomModal isOpen={isTreeAlertOpen} onClose={handleCloseTreeAlert} message={treeErrMsg} />
+      <CustomModal
+        modalType="confirm"
+        isOpen={isDeleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        message={deleteConfirmMessage}
+      />
     </S.TreeContainer>
   );
 }

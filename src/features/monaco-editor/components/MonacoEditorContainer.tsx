@@ -37,18 +37,29 @@ function MonacoEditorContainer({
   const closeFileTab = useEditorStore((state) => state.closeFileTab);
   const [editorActiveFilePath, setEditorActiveFilePath] = useState<string | null>(null);
 
-  // selectedFileFolderPath가 없으면 에디터 빈화면 처리
-  // selectedFileFolderPath가 바뀌면, 폴더가 아니라 파일일 때에만 에디터 업뎃
   useEffect(() => {
-    if (!selectedFileFolderPath) {
-      return;
+    let nextEditorPath = editorActiveFilePath;
+
+    // 트리에서 선택된 경로가 파일이면 에디터 활성 경로를 해당 파일로 동기화
+    if (selectedFileFolderPath) {
+      const selectedNode = findFileNodeInTree(fileTree, selectedFileFolderPath);
+      if (selectedNode?.type === "file") {
+        nextEditorPath = selectedFileFolderPath;
+      }
     }
 
-    const activeNode = findFileNodeInTree(fileTree, selectedFileFolderPath);
-    if (activeNode?.type === "file") {
-      setEditorActiveFilePath(selectedFileFolderPath);
+    // 현재 에디터 활성 경로가 더 이상 유효하지 않으면 열린 탭의 마지막 파일로 fallback
+    if (nextEditorPath) {
+      const existingNode = findFileNodeInTree(fileTree, nextEditorPath);
+      if (!existingNode || existingNode.type !== "file") {
+        nextEditorPath = openedFilePaths[openedFilePaths.length - 1] ?? null;
+      }
     }
-  }, [selectedFileFolderPath, fileTree]);
+
+    if (nextEditorPath !== editorActiveFilePath) {
+      setEditorActiveFilePath(nextEditorPath);
+    }
+  }, [editorActiveFilePath, fileTree, openedFilePaths, selectedFileFolderPath]);
 
   const activeFile = useMemo<FileNode | null>(() => {
     if (!editorActiveFilePath) {

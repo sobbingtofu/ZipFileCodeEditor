@@ -70,7 +70,14 @@ export function CustomModal({
   return createPortal(
     <S.ModalBackdrop $themeMode={theme} onClick={onClose}>
       <S.CustomModal $themeMode={theme} ref={modalRef} tabIndex={-1} onClick={(event) => event.stopPropagation()}>
-        <S.ModalDescription $themeMode={theme}>{message}</S.ModalDescription>
+        <S.ModalDescription $themeMode={theme}>
+          {message.split("\n").map((line, index) => (
+            <span key={`${line}-${index}`}>
+              {line}
+              {index < message.split("\n").length - 1 && <br />}
+            </span>
+          ))}
+        </S.ModalDescription>
         <S.ModalButtonContainer>
           {modalType == "alert" && (
             <S.ModalButton $themeMode={theme} type="button" onClick={onClose}>

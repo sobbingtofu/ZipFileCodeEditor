@@ -29,10 +29,8 @@ function useAddFileFolder({
   const openFileTab = useEditorStore((state) => state.openFileTab);
   const setActiveFilePath = useEditorStore((state) => state.setActiveFilePath);
 
-  const [pendingAddFileTargetFolderPath, setPendingAddFileTargetFolderPath] = useState<string | null | undefined>(
-    undefined,
-  );
-  const [pendingAddFileInputValue, setPendingAddFileInputValue] = useState("");
+  const [pendingAddTargetFolderPath, setpendingAddTargetFolderPath] = useState<string | null | undefined>(undefined);
+  const [pendingAddInputValue, setPendingAddInputValue] = useState("");
   const [pendingAddFolderTargetFolderPath, setPendingAddFolderTargetFolderPath] = useState<string | null | undefined>(
     undefined,
   );
@@ -61,8 +59,8 @@ function useAddFileFolder({
   );
 
   const handleAddFileCancel = useCallback(() => {
-    setPendingAddFileTargetFolderPath(undefined);
-    setPendingAddFileInputValue("");
+    setpendingAddTargetFolderPath(undefined);
+    setPendingAddInputValue("");
   }, []);
 
   const handleAddFolderCancel = useCallback(() => {
@@ -77,8 +75,8 @@ function useAddFileFolder({
       triggerShowInTreeTargetPath(targetFolderPath);
     }
 
-    setPendingAddFileTargetFolderPath(targetFolderPath);
-    setPendingAddFileInputValue("");
+    setpendingAddTargetFolderPath(targetFolderPath);
+    setPendingAddInputValue("");
     handleAddFolderCancel();
   }, [getAddTargetFolderPath, handleAddFolderCancel, triggerShowInTreeTargetPath]);
 
@@ -95,17 +93,17 @@ function useAddFileFolder({
   }, [getAddTargetFolderPath, handleAddFileCancel, triggerShowInTreeTargetPath]);
 
   const handleAddFileSubmit = useCallback(() => {
-    if (pendingAddFileTargetFolderPath === undefined) {
+    if (pendingAddTargetFolderPath === undefined) {
       return;
     }
 
-    const nextInputName = pendingAddFileInputValue.trim();
+    const nextInputName = pendingAddInputValue.trim();
     if (nextInputName === "") {
       handleAddFileCancel();
       return;
     }
 
-    const targetSiblings = getAddTargetFolderSiblings(pendingAddFileTargetFolderPath);
+    const targetSiblings = getAddTargetFolderSiblings(pendingAddTargetFolderPath);
     if (targetSiblings.some((node) => node.name === nextInputName)) {
       onOverlapFileName();
       handleAddFileCancel();
@@ -118,9 +116,7 @@ function useAddFileFolder({
       return;
     }
 
-    const nextFilePath = pendingAddFileTargetFolderPath
-      ? `${pendingAddFileTargetFolderPath}/${nextInputName}`
-      : nextInputName;
+    const nextFilePath = pendingAddTargetFolderPath ? `${pendingAddTargetFolderPath}/${nextInputName}` : nextInputName;
 
     const newFileNode: FileNode = {
       id: `node:${nextFilePath}`,
@@ -132,7 +128,7 @@ function useAddFileFolder({
       haveUnsavedChange: false,
     };
 
-    const nextTree = appendFileNodeToTargetFolder(fileTree, pendingAddFileTargetFolderPath, newFileNode);
+    const nextTree = appendFileNodeToTargetFolder(fileTree, pendingAddTargetFolderPath, newFileNode);
     setFileTree(nextTree);
     triggerShowInTreeTargetPath(nextFilePath);
     openFileTab(nextFilePath);
@@ -144,8 +140,8 @@ function useAddFileFolder({
     onInvalidAddFileName,
     onOverlapFileName,
     openFileTab,
-    pendingAddFileInputValue,
-    pendingAddFileTargetFolderPath,
+    pendingAddInputValue,
+    pendingAddTargetFolderPath,
     setFileTree,
     triggerShowInTreeTargetPath,
   ]);
@@ -207,9 +203,9 @@ function useAddFileFolder({
   ]);
 
   return {
-    pendingAddFileTargetFolderPath,
-    pendingAddFileInputValue,
-    setPendingAddFileInputValue,
+    pendingAddTargetFolderPath,
+    pendingAddInputValue,
+    setPendingAddInputValue,
     handleAddFileSubmit,
     handleAddFileCancel,
     handleAddFileBtnClick,

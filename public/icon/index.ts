@@ -10,3 +10,4 @@ export * from "./CollapseIcon";
 export * from "./AddFileIcon";
 export * from "./AddFolderIcon";
 export * from "./RenameIcon";
+export * from "./DeleteIcon";
