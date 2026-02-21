@@ -123,6 +123,11 @@ function MonacoEditorContainer({onFlushAllMonacoToZustandChange}: MonacoEditorCo
           </S.TabDiv>
         ))}
       </S.TabContainer>
+      {activeFilePath && (
+        <S.PathNameIndicatorBar>
+          <span>{activeFilePath.replace(/\\/g, "/").replace(/\//g, " > ")}</span>
+        </S.PathNameIndicatorBar>
+      )}
       <S.EditorBody>
         {!activeFilePath && <S.EmptyState>왼쪽 파일 트리에서 파일을 선택하세요.</S.EmptyState>}
 

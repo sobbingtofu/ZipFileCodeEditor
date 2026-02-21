@@ -84,6 +84,16 @@ export const CloseButton = styled.button`
   }
 `;
 
+export const PathNameIndicatorBar = styled.div`
+  height: 24px;
+  width: 100%;
+  border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  font-size: 12px;
+  color: #bdbdbd;
+  padding: 4px 4px 2px 12px;
+`;
+
 export const EditorBody = styled.div`
   flex: 1;
   min-height: 0;
