@@ -93,6 +93,7 @@ function FileTree() {
     useDeleteFileFolder({
       fileTree,
       selectedFileFolderPath,
+      treeScrollAreaRef,
     });
 
   // 트리에 ZIP 파일 드래그&드롭 추가 관련

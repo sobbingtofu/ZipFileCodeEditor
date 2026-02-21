@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {RefObject, useCallback, useEffect, useMemo, useState} from "react";
 
 import {FileNode} from "@/src/types/fileType";
 import {useFileStore} from "@/src/store/useFileStore";
@@ -6,17 +6,21 @@ import {useEditorStore} from "@/src/store/useEditorStore";
 
 import {findNodeByPath} from "../logic/findNodeByPath";
 import {removeNodeByPath} from "../logic/deleteFileFolderLogic";
+import useScrollTreeToTargetFile from "./useScrollTreeToTargetFile";
 
 interface UseDeleteFileFolderProps {
   fileTree: FileNode[];
   selectedFileFolderPath: string | null;
+  treeScrollAreaRef: RefObject<HTMLDivElement | null>;
 }
 
-function useDeleteFileFolder({fileTree, selectedFileFolderPath}: UseDeleteFileFolderProps) {
+function useDeleteFileFolder({fileTree, selectedFileFolderPath, treeScrollAreaRef}: UseDeleteFileFolderProps) {
   const setFileTree = useFileStore((state) => state.setFileTree);
   const removeOpenedFileFolderPathsByPrefix = useEditorStore((state) => state.removeOpenedFileFolderPathsByPrefix);
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+  const {scrollToTargetFile} = useScrollTreeToTargetFile(treeScrollAreaRef);
 
   const selectedNode = useMemo(() => {
     if (!selectedFileFolderPath) {
@@ -43,15 +47,16 @@ function useDeleteFileFolder({fileTree, selectedFileFolderPath}: UseDeleteFileFo
   }, []);
 
   const handleDeleteBtnClick = useCallback(() => {
-    if (!selectedNode) {
+    if (!selectedNode || !selectedFileFolderPath) {
       return;
     }
 
+    scrollToTargetFile(selectedFileFolderPath);
     setIsDeleteConfirmOpen(true);
-  }, [selectedNode]);
+  }, [selectedNode, scrollToTargetFile, selectedFileFolderPath]);
 
   const handleDeleteConfirm = useCallback(() => {
-    if (!selectedNode) {
+    if (!selectedNode || !selectedFileFolderPath) {
       setIsDeleteConfirmOpen(false);
       return;
     }

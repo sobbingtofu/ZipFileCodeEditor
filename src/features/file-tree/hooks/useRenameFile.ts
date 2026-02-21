@@ -4,6 +4,7 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {FileNode} from "@/src/types/fileType";
 import {buildRenamedFilePath, updateTargetFileNodeInTree} from "../logic/renameFileLogic";
 import {useEditorStore} from "@/src/store/useEditorStore";
+import useScrollTreeToTargetFile from "./useScrollTreeToTargetFile";
 
 interface UseRenameFileProps {
   treeScrollAreaRef: RefObject<HTMLDivElement | null>;
@@ -13,6 +14,8 @@ interface UseRenameFileProps {
 }
 
 function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onInvalidRenameName}: UseRenameFileProps) {
+  const {scrollToTargetFile} = useScrollTreeToTargetFile(treeScrollAreaRef);
+
   // 이름 변경 대상 파일의 경로 관리용 상태. null이면 이름 변경 모드가 아님을 의미
   const [renamingTargetPath, setRenamingTargetPath] = useState<string | null>(null);
 
@@ -22,36 +25,6 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
   const setFileTree = useFileStore((state) => state.setFileTree);
   const triggerShowInTreeTargetPath = useFileStore((state) => state.triggerShowInTreeTargetPath);
   const replaceOpenedFilePath = useEditorStore((state) => state.replaceOpenedFilePath);
-
-  /**
-   * 이름 변경 모드 진입 시, 해당 파일이 보이는 위치로 스크롤을 이동시키는 함수
-   * - 트리 전체를 탐색하여 이름 변경 대상 파일의 DOM 요소를 찾은 뒤, 해당 요소가 트리 컨테이너 안에서 완전히 보이는지 검사
-   * - 완전히 보이지 않는 경우, scrollIntoView 메서드를 사용하여 스크롤을 이동시킴
-   */
-  const scrollToRenamingFile = useCallback(
-    (targetPath: string) => {
-      const container = treeScrollAreaRef.current;
-      if (!container) {
-        return;
-      }
-
-      const nodeElements = container.querySelectorAll<HTMLElement>("[data-file-path]");
-      const targetElement = [...nodeElements].find((element) => element.getAttribute("data-file-path") === targetPath);
-      if (!targetElement) {
-        return;
-      }
-
-      const containerRect = container.getBoundingClientRect();
-      const targetRect = targetElement.getBoundingClientRect();
-      const isFullyVisible = targetRect.top >= containerRect.top && targetRect.bottom <= containerRect.bottom;
-      if (isFullyVisible) {
-        return;
-      }
-
-      targetElement.scrollIntoView({block: "nearest"});
-    },
-    [treeScrollAreaRef],
-  );
 
   /**
    * 이름 변경 모드 취소 핸들러
@@ -126,7 +99,7 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
     }
 
     triggerShowInTreeTargetPath(selectedFileFolderPath);
-    scrollToRenamingFile(selectedFileFolderPath);
+    scrollToTargetFile(selectedFileFolderPath);
 
     setRenamingTargetPath(selectedFileFolderPath);
     setRenameInputValue(activeNode.name);
@@ -135,7 +108,7 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
     renamingTargetPath,
     selectedFileFolderPath,
     handleRenameCancel,
-    scrollToRenamingFile,
+    scrollToTargetFile,
     triggerShowInTreeTargetPath,
   ]);
 
