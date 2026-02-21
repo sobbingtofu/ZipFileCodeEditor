@@ -6,7 +6,7 @@ import {FileNode} from "@/src/types/fileType";
 import {useFileStore} from "@/src/store/useFileStore";
 import {getLanguageByFilePath} from "../logic/editorLogics";
 import {useThemeStore} from "@/src/store/useThemeStore";
-import {findFileNodeInTree} from "../../file-tree";
+import {getFileNodeByPathFromIndex} from "../../file-tree";
 
 interface UseMonacoEditorSyncProps {
   editorActiveFilePath: string | null;
@@ -124,8 +124,8 @@ function useMonacoEditorSync({
         return;
       }
 
-      const latestTree = useFileStore.getState().fileTree;
-      const targetNode = findFileNodeInTree(latestTree, targetPath);
+      const latestTreeIndex = useFileStore.getState().fileTreeIndex;
+      const targetNode = getFileNodeByPathFromIndex(latestTreeIndex, targetPath);
       if (!targetNode || targetNode.type !== "file") {
         setHaveUnsavedChangeByPath(targetPath, false);
         return;

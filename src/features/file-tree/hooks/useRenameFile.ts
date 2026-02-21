@@ -4,7 +4,7 @@ import {FileNode} from "@/src/types/fileType";
 import {buildRenamedFilePath, updateTargetFileNodeInTree} from "../logic/renameFileLogic";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import useScrollTreeToTargetFile from "./useScrollTreeToTargetFile";
-import {findNodeByPath} from "../logic/treeHandlingLogic";
+import {getNodeByPathFromIndex} from "../logic/treeHandlingLogic";
 
 interface UseRenameFileProps {
   treeScrollAreaRef: RefObject<HTMLDivElement | null>;
@@ -15,6 +15,7 @@ interface UseRenameFileProps {
 
 function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onInvalidRenameName}: UseRenameFileProps) {
   const {scrollToTargetFile} = useScrollTreeToTargetFile(treeScrollAreaRef);
+  const fileTreeIndex = useFileStore((state) => state.fileTreeIndex);
 
   // 이름 변경 대상 파일의 경로 관리용 상태. null이면 이름 변경 모드가 아님을 의미
   const [renamingTargetPath, setRenamingTargetPath] = useState<string | null>(null);
@@ -42,7 +43,7 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
       return;
     }
 
-    const originalNode = findNodeByPath(fileTree, renamingTargetPath);
+    const originalNode = getNodeByPathFromIndex(fileTreeIndex, renamingTargetPath);
 
     if (!originalNode) {
       handleRenameCancel();
@@ -72,6 +73,7 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
     handleRenameCancel();
   }, [
     fileTree,
+    fileTreeIndex,
     handleRenameCancel,
     renameInputValue,
     renamingTargetPath,
@@ -92,7 +94,7 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
       return;
     }
 
-    const activeNode = findNodeByPath(fileTree, selectedFileFolderPath);
+    const activeNode = getNodeByPathFromIndex(fileTreeIndex, selectedFileFolderPath);
 
     if (!activeNode) {
       return;
@@ -104,7 +106,7 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
     setRenamingTargetPath(selectedFileFolderPath);
     setRenameInputValue(activeNode.name);
   }, [
-    fileTree,
+    fileTreeIndex,
     renamingTargetPath,
     selectedFileFolderPath,
     handleRenameCancel,

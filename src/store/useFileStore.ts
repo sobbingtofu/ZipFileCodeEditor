@@ -1,10 +1,12 @@
 import {create} from "zustand";
 import {FileNode} from "@/src/types/fileType";
+import {buildFileTreeIndex, FileTreeIndex} from "@/src/features/file-tree";
 
 export type loadingType = "upload" | "download" | null;
 
 interface FileStoreState {
   fileTree: FileNode[];
+  fileTreeIndex: FileTreeIndex;
   isLoading: boolean;
   showInTreeTargetPath: string | null;
   showSignal: number;
@@ -19,67 +21,73 @@ interface FileStoreState {
   hasUnsavedChanges: () => boolean;
 }
 
-/** 업데이트할 파일 내용 재귀적으로 생성 */
-const generateNewFileContentInTree = (nodes: FileNode[], targetPath: string, updatedContent: string): FileNode[] => {
-  return nodes.map((node) => {
-    if (node.type === "file" && node.path === targetPath) {
-      return {...node, content: updatedContent, haveUnsavedChange: false};
-    }
-
-    if (node.type === "folder" && node.children) {
-      return {...node, children: generateNewFileContentInTree(node.children, targetPath, updatedContent)};
-    }
-
-    return node;
-  });
-};
-
-/** 특정 파일 경로에 대해 haveUnsavedChange 플래그를 업데이트하는 함수
- * - targetPath에 해당하는 파일 노드를 찾아 haveUnsavedChange 값을 업데이트
- * - 폴더 노드의 경우 재귀적으로 하위 노드에도 동일한 업데이트 적용
- * - 트리 구조는 유지해 변경된 노드만 새로운 객체로 생성하여 반환 (>> 불변성 유지)
+/**
+ * 파일 경로 기준으로 노드 1개를 갱신하고, 조상 폴더 체인만 재구성하는 함수
+ * - 구조(path, parent-child 관계)가 바뀌지 않는 업데이트(content, unsaved flag)에 최적화
+ * - nodeByPath는 변경된 노드 + 조상 폴더 노드만 새 객체로 교체
+ * - parentPathByPath/childPathsByPath는 구조가 동일하므로 재사용
  */
-const updateHaveUnsavedChangeInTree = (
-  nodes: FileNode[],
+const updateTreeAndIndexByPath = (
+  fileTree: FileNode[],
+  fileTreeIndex: FileTreeIndex,
   targetPath: string,
-  haveUnsavedChange: boolean,
-): FileNode[] => {
-  return nodes.map((node) => {
-    if (node.type === "file" && node.path === targetPath) {
-      return {...node, haveUnsavedChange};
+  updater: (targetNode: FileNode) => FileNode,
+): {nextFileTree: FileNode[]; nextFileTreeIndex: FileTreeIndex} => {
+  const targetNode = fileTreeIndex.nodeByPath.get(targetPath);
+  if (!targetNode) {
+    return {nextFileTree: fileTree, nextFileTreeIndex: fileTreeIndex};
+  }
+
+  const nextNodeByPath = new Map(fileTreeIndex.nodeByPath);
+  nextNodeByPath.set(targetPath, updater(targetNode));
+
+  let currentPath: string | null = targetPath;
+
+  while (currentPath !== null) {
+    const parentPath: string | null = fileTreeIndex.parentPathByPath.get(currentPath) ?? null;
+    if (parentPath === null) {
+      break;
     }
 
-    if (node.type === "folder" && node.children) {
-      return {...node, children: updateHaveUnsavedChangeInTree(node.children, targetPath, haveUnsavedChange)};
+    const parentNode = nextNodeByPath.get(parentPath);
+    if (parentNode?.type === "folder") {
+      const childPaths = fileTreeIndex.childPathsByPath.get(parentPath) ?? [];
+      const nextChildren = childPaths
+        .map((childPath) => nextNodeByPath.get(childPath))
+        .filter((childNode): childNode is FileNode => childNode !== undefined);
+
+      nextNodeByPath.set(parentPath, {
+        ...parentNode,
+        children: nextChildren,
+      });
     }
 
-    return node;
-  });
-};
+    currentPath = parentPath;
+  }
 
-/** 트리에서 저장되지 않은 변경사항이 있는지 확인해 true/false 반환 */
-const hasUnsavedChangesInTree = (nodes: FileNode[]): boolean => {
-  return nodes.some((node) => {
-    if (node.type === "file") {
-      return node.haveUnsavedChange === true;
-    }
+  const nextFileTree = fileTree
+    .map((rootNode) => nextNodeByPath.get(rootNode.path))
+    .filter((rootNode): rootNode is FileNode => rootNode !== undefined);
 
-    if (node.type === "folder" && node.children) {
-      return hasUnsavedChangesInTree(node.children);
-    }
-
-    return false;
-  });
+  return {
+    nextFileTree,
+    nextFileTreeIndex: {
+      nodeByPath: nextNodeByPath,
+      parentPathByPath: fileTreeIndex.parentPathByPath,
+      childPathsByPath: fileTreeIndex.childPathsByPath,
+    },
+  };
 };
 
 export const useFileStore = create<FileStoreState>((set, get) => ({
   fileTree: [],
+  fileTreeIndex: buildFileTreeIndex([]),
   isLoading: false,
   showInTreeTargetPath: null,
   showSignal: 0,
   loadingType: null,
   setLoadingType: (loadingType) => set({loadingType}),
-  setFileTree: (fileTree) => set({fileTree}),
+  setFileTree: (fileTree) => set({fileTree, fileTreeIndex: buildFileTreeIndex(fileTree)}),
   setIsLoading: (isLoading) => set({isLoading}),
   triggerShowInTreeTargetPath: (targetPath) =>
     set((state) => ({
@@ -87,14 +95,68 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
       showSignal: state.showSignal + 1,
     })),
   resetFileTree: () =>
-    set({fileTree: [], isLoading: false, showInTreeTargetPath: null, showSignal: 0, loadingType: null}),
+    set({
+      fileTree: [],
+      fileTreeIndex: buildFileTreeIndex([]),
+      isLoading: false,
+      showInTreeTargetPath: null,
+      showSignal: 0,
+      loadingType: null,
+    }),
   updateFileContentByPath: (targetPath, updatedContent) =>
-    set((state) => ({
-      fileTree: generateNewFileContentInTree(state.fileTree, targetPath, updatedContent),
-    })),
+    set((state) => {
+      const {nextFileTree, nextFileTreeIndex} = updateTreeAndIndexByPath(
+        state.fileTree,
+        state.fileTreeIndex,
+        targetPath,
+        (targetNode) => {
+          if (targetNode.type !== "file") {
+            return targetNode;
+          }
+
+          return {
+            ...targetNode,
+            content: updatedContent,
+            haveUnsavedChange: false,
+          };
+        },
+      );
+
+      return {
+        fileTree: nextFileTree,
+        fileTreeIndex: nextFileTreeIndex,
+      };
+    }),
   setHaveUnsavedChangeByPath: (targetPath, haveUnsavedChange) =>
-    set((state) => ({
-      fileTree: updateHaveUnsavedChangeInTree(state.fileTree, targetPath, haveUnsavedChange),
-    })),
-  hasUnsavedChanges: () => hasUnsavedChangesInTree(get().fileTree),
+    set((state) => {
+      const {nextFileTree, nextFileTreeIndex} = updateTreeAndIndexByPath(
+        state.fileTree,
+        state.fileTreeIndex,
+        targetPath,
+        (targetNode) => {
+          if (targetNode.type !== "file") {
+            return targetNode;
+          }
+
+          return {
+            ...targetNode,
+            haveUnsavedChange,
+          };
+        },
+      );
+
+      return {
+        fileTree: nextFileTree,
+        fileTreeIndex: nextFileTreeIndex,
+      };
+    }),
+  hasUnsavedChanges: () => {
+    for (const node of get().fileTreeIndex.nodeByPath.values()) {
+      if (node.type === "file" && node.haveUnsavedChange === true) {
+        return true;
+      }
+    }
+
+    return false;
+  },
 }));

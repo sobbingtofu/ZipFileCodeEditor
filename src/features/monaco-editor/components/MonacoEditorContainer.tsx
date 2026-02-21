@@ -12,7 +12,7 @@ import {useMonacoEditorSync} from "@/src/features/monaco-editor";
 import Image from "next/image";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useThemeStore} from "@/src/store/useThemeStore";
-import {findFileNodeInTree} from "../../file-tree";
+import {getNodeByPathFromIndex} from "../../file-tree";
 
 interface MonacoEditorContainerEditorContainerProps {
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
@@ -28,6 +28,7 @@ function MonacoEditorContainer({
   onRedoActiveFileMonacoChange,
 }: MonacoEditorContainerEditorContainerProps) {
   const fileTree = useFileStore((state) => state.fileTree);
+  const fileTreeIndex = useFileStore((state) => state.fileTreeIndex);
   const triggerRevealFilePath = useFileStore((state) => state.triggerShowInTreeTargetPath);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const theme = useThemeStore((state) => state.theme);
@@ -43,7 +44,7 @@ function MonacoEditorContainer({
 
     // 트리에서 선택된 경로가 파일이면 에디터 활성 경로를 해당 파일로 동기화
     if (selectedFileFolderPath) {
-      const selectedNode = findFileNodeInTree(fileTree, selectedFileFolderPath);
+      const selectedNode = getNodeByPathFromIndex(fileTreeIndex, selectedFileFolderPath);
       if (selectedNode?.type === "file") {
         nextEditorPath = selectedFileFolderPath;
       }
@@ -51,7 +52,7 @@ function MonacoEditorContainer({
 
     // 현재 에디터 활성 경로가 더 이상 유효하지 않으면 열린 탭의 마지막 파일로 fallback
     if (nextEditorPath) {
-      const existingNode = findFileNodeInTree(fileTree, nextEditorPath);
+      const existingNode = getNodeByPathFromIndex(fileTreeIndex, nextEditorPath);
       if (!existingNode || existingNode.type !== "file") {
         nextEditorPath = openedFilePaths[openedFilePaths.length - 1] ?? null;
       }
@@ -60,15 +61,15 @@ function MonacoEditorContainer({
     if (nextEditorPath !== editorActiveFilePath) {
       setEditorActiveFilePath(nextEditorPath);
     }
-  }, [editorActiveFilePath, fileTree, openedFilePaths, selectedFileFolderPath]);
+  }, [editorActiveFilePath, fileTreeIndex, openedFilePaths, selectedFileFolderPath]);
 
   const activeFile = useMemo<FileNode | null>(() => {
     if (!editorActiveFilePath) {
       return null;
     }
 
-    return findFileNodeInTree(fileTree, editorActiveFilePath);
-  }, [fileTree, editorActiveFilePath]);
+    return getNodeByPathFromIndex(fileTreeIndex, editorActiveFilePath);
+  }, [fileTreeIndex, editorActiveFilePath]);
 
   // 열린 파일 경로 목록과 파일 트리를 기반으로,
   // 각 열린 파일이 저장되지 않은 변경사항을 가지고 있는지 여부를 <파일의 path - 변경사항보유여부 boolean> 형태로 매핑한 객체 생성
@@ -76,19 +77,19 @@ function MonacoEditorContainer({
     const unsavedMap: Record<string, boolean> = {};
 
     for (const openedPath of openedFilePaths) {
-      const node = findFileNodeInTree(fileTree, openedPath);
+      const node = getNodeByPathFromIndex(fileTreeIndex, openedPath);
       unsavedMap[openedPath] = Boolean(node?.type === "file" && node.haveUnsavedChange);
     }
 
     return unsavedMap;
-  }, [fileTree, openedFilePaths]);
+  }, [fileTreeIndex, openedFilePaths]);
 
   /* 파일 탭 닫기 버튼 클릭 핸들러
    * - 닫으려는 탭의 파일 경로에 저장되지 않은 변경사항이 있는 경우 : 저장 확인 모달 열기
    * - 닫으려는 탭의 파일 경로에 저장되지 않은 변경사항이 없는 경우 : 바로 탭 닫기
    */
   const handleTabClose = (filePath: string) => {
-    const targetFileNode = findFileNodeInTree(fileTree, filePath);
+    const targetFileNode = getNodeByPathFromIndex(fileTreeIndex, filePath);
     if (targetFileNode?.type === "file" && targetFileNode.haveUnsavedChange) {
       setIsSaveModalOpen(true);
       return;
