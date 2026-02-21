@@ -13,8 +13,7 @@ import {AddFileIcon, AddFolderIcon, CollapseIcon, RenameIcon, UploadIcon} from "
 import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
 import {useRenameFile} from "../hooks/useRenameFile";
-import {useAddFile} from "../hooks/useAddFile";
-import {useAddFolder} from "../hooks/useAddFolder";
+import {useAddFileFolder} from "../hooks/useAddFileFolder";
 
 function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
@@ -35,13 +34,19 @@ function FileTree() {
   const {handleZipFileDrop, handleZipFileInputChange} = useHandleZipUpload();
 
   const {
-    pendingAddTargetFolderPath,
-    pendingAddInputValue,
-    setPendingAddInputValue,
+    pendingAddFileTargetFolderPath: pendingAddTargetFolderPath,
+    pendingAddFileInputValue: pendingAddInputValue,
+    setPendingAddFileInputValue: setPendingAddInputValue,
     handleAddFileSubmit,
     handleAddFileCancel,
     handleAddFileBtnClick,
-  } = useAddFile({
+    pendingAddFolderTargetFolderPath,
+    pendingAddFolderInputValue,
+    setPendingAddFolderInputValue,
+    handleAddFolderSubmit,
+    handleAddFolderCancel,
+    handleAddFolderBtnClick,
+  } = useAddFileFolder({
     fileTree,
     selectedFileFolderPath,
     onInvalidAddFileName: () => {
@@ -52,18 +57,6 @@ function FileTree() {
       setTreeErrMsg("같은 이름의 파일이 이미 존재합니다.");
       setIsTreeAlertOpen(true);
     },
-  });
-
-  const {
-    pendingAddTargetFolderPath: pendingAddFolderTargetFolderPath,
-    pendingAddInputValue: pendingAddFolderInputValue,
-    setPendingAddInputValue: setPendingAddFolderInputValue,
-    handleAddFolderSubmit,
-    handleAddFolderCancel,
-    handleAddFolderBtnClick,
-  } = useAddFolder({
-    fileTree,
-    selectedFileFolderPath,
     onInvalidAddFolderName: () => {
       setTreeErrMsg("폴더 이름에는 특수문자 /와 \\를 사용할 수 없습니다.");
       setIsTreeAlertOpen(true);
