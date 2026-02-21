@@ -4,8 +4,11 @@ import {FileNode} from "@/src/types/fileType";
 interface FileStoreState {
   fileTree: FileNode[];
   isLoading: boolean;
+  showInTreeTargetPath: string | null;
+  showSignal: number;
   setFileTree: (fileTree: FileNode[]) => void;
   setIsLoading: (isLoading: boolean) => void;
+  triggerShowInTreeTargetPath: (targetPath: string) => void;
   resetFileTree: () => void;
   updateFileContentByPath: (targetPath: string, updatedContent: string) => void;
   setHaveUnsavedChangeByPath: (targetPath: string, haveUnsavedChange: boolean) => void;
@@ -90,9 +93,16 @@ export const findFileNodeInTree = (nodes: FileNode[], targetPath: string): FileN
 export const useFileStore = create<FileStoreState>((set, get) => ({
   fileTree: [],
   isLoading: false,
+  showInTreeTargetPath: null,
+  showSignal: 0,
   setFileTree: (fileTree) => set({fileTree}),
   setIsLoading: (isLoading) => set({isLoading}),
-  resetFileTree: () => set({fileTree: [], isLoading: false}),
+  triggerShowInTreeTargetPath: (targetPath) =>
+    set((state) => ({
+      showInTreeTargetPath: targetPath,
+      showSignal: state.showSignal + 1,
+    })),
+  resetFileTree: () => set({fileTree: [], isLoading: false, showInTreeTargetPath: null, showSignal: 0}),
   updateFileContentByPath: (targetPath, updatedContent) =>
     set((state) => ({
       fileTree: generateNewFileContentInTree(state.fileTree, targetPath, updatedContent),

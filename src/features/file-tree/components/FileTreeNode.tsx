@@ -3,6 +3,8 @@ import {memo, useEffect, useState} from "react";
 
 import * as S from "@/src/features/file-tree/components/FileTree.styles";
 import {useEditorStore} from "@/src/store/useEditorStore";
+import {useFileStore} from "@/src/store/useFileStore";
+import {isAncestorFolderPath, normalizePath} from "../../zip-handler";
 
 interface FileTreeNodeProps {
   node: FileNode;
@@ -21,6 +23,9 @@ const FileTreeNode = memo(function FileTreeNode({
 }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  const revealTargetPath = useFileStore((state) => state.showInTreeTargetPath);
+  const revealSignal = useFileStore((state) => state.showSignal);
+
   const isFolder = node.type === "folder";
   const isActive = !isFolder && node.path === activeFilePath;
 
@@ -35,6 +40,17 @@ const FileTreeNode = memo(function FileTreeNode({
       setIsExpanded(false);
     }
   }, [collapseAllSignal, isFolder]);
+
+  // showInTreeTargetPath이 변경될 때마다, 해당 경로가 이 노드의 경로의 조상인지 검사 >> 조상인 경우 이 노드를 자동으로 확장하여 자식 노드가 보이도록 처리
+  useEffect(() => {
+    if (!isFolder || revealSignal === 0 || !revealTargetPath) {
+      return;
+    }
+
+    if (isAncestorFolderPath(node.path, revealTargetPath)) {
+      setIsExpanded(true);
+    }
+  }, [isFolder, node.path, revealSignal, revealTargetPath]);
 
   const handleSelectFile = (selectedFileNode: FileNode) => {
     openFileTab(selectedFileNode.path);

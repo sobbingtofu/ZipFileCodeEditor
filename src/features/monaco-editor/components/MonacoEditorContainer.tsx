@@ -28,6 +28,7 @@ function MonacoEditorContainer({
   onRedoActiveFileMonacoChange,
 }: MonacoEditorContainerEditorContainerProps) {
   const fileTree = useFileStore((state) => state.fileTree);
+  const triggerRevealFilePath = useFileStore((state) => state.triggerShowInTreeTargetPath);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const theme = useThemeStore((state) => state.theme);
 
@@ -82,6 +83,8 @@ function MonacoEditorContainer({
   });
 
   const handleTabClick = (filePath: string) => {
+    triggerRevealFilePath(filePath);
+
     if (filePath === activeFilePath) {
       return;
     }

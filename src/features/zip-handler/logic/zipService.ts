@@ -3,7 +3,27 @@ import {FileNode} from "@/src/types/fileType";
 
 const IMAGE_EXTENSION_SET = new Set([".jpg", ".jpeg", ".png"]);
 
-const normalizePath = (rawPath: string): string => rawPath.replace(/\\/g, "/").replace(/\/+$/g, "");
+export const normalizePath = (rawPath: string): string => rawPath.replace(/\\/g, "/").replace(/\/+$/g, "");
+
+/** 인자로 받는 폴더 경로가 파일 경로의 조상인지 여부 판단
+ * - 양쪽 경로 모두 정규화하여 슬래시 방향 통일 및 불필요한 슬래시 제거
+ * - 폴더 경로가 대상 파일 경로의 접두사인지 검사하되, 폴더 경로와 대상 파일 경로가 동일한 경우는 제외
+ * - 예시: folderPath="src/components", targetPath="src/components/Button"인 경우 true 반환, folderPath="src/components", targetPath="src/components"인 경우 false 반환
+ */
+export const isAncestorFolderPath = (folderPath: string, targetPath: string): boolean => {
+  const normalizedFolderPath = normalizePath(folderPath);
+  const normalizedTargetPath = normalizePath(targetPath);
+
+  if (!normalizedFolderPath || !normalizedTargetPath) {
+    return false;
+  }
+
+  if (normalizedFolderPath === normalizedTargetPath) {
+    return false;
+  }
+
+  return normalizedTargetPath.startsWith(`${normalizedFolderPath}/`);
+};
 
 /** 파일 경로가 이미지 확장자로 끝나는지 검사하여 바이너리 여부 판단 */
 const isBinaryImageFile = (filePath: string): boolean => {
