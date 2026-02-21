@@ -1,7 +1,18 @@
 import JSZip from "jszip";
 import {FileNode} from "@/src/types/fileType";
 
-const IMAGE_EXTENSION_SET = new Set([".jpg", ".jpeg", ".png"]);
+const IMAGE_EXTENSION_SET = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".gif",
+  ".bmp",
+  ".webp",
+  ".svg",
+  ".ico",
+  ".tiff",
+  ".tif",
+]);
 
 export const normalizePath = (rawPath: string): string => rawPath.replace(/\\/g, "/").replace(/\/+$/g, "");
 
@@ -29,6 +40,84 @@ export const isAncestorFolderPath = (folderPath: string, targetPath: string): bo
 const isBinaryImageFile = (filePath: string): boolean => {
   const lowerCasePath = filePath.toLowerCase();
   return [...IMAGE_EXTENSION_SET].some((extension) => lowerCasePath.endsWith(extension));
+};
+
+const EDITABLE_TEXT_EXTENSION_SET = new Set([
+  ".txt",
+  ".md",
+  ".json",
+  ".yaml",
+  ".yml",
+  ".xml",
+  ".csv",
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".css",
+  ".scss",
+  ".sass",
+  ".less",
+  ".html",
+  ".htm",
+  ".vue",
+  ".svelte",
+  ".py",
+  ".java",
+  ".kt",
+  ".go",
+  ".rs",
+  ".c",
+  ".h",
+  ".cpp",
+  ".hpp",
+  ".cs",
+  ".php",
+  ".rb",
+  ".swift",
+  ".sh",
+  ".bash",
+  ".zsh",
+  ".ps1",
+  ".sql",
+  ".toml",
+  ".ini",
+  ".conf",
+  ".env",
+  ".gitignore",
+  ".gitattributes",
+  ".editorconfig",
+]);
+
+const EDITABLE_TEXT_FILENAME_SET = new Set(["readme", "license", "dockerfile", "makefile", "jenkinsfile"]);
+
+/** 파일 경로가 Monaco Editor에서 편집 가능한 텍스트 기반 파일인지 판단 */
+export const getIsEditableTextFile = (filePath: string): boolean => {
+  const normalizedLowerCasePath = normalizePath(filePath).toLowerCase();
+  if (!normalizedLowerCasePath || normalizedLowerCasePath.endsWith("/")) {
+    return false;
+  }
+
+  if (isBinaryImageFile(normalizedLowerCasePath)) {
+    return false;
+  }
+
+  const fileName = normalizedLowerCasePath.split("/").pop() ?? "";
+  if (!fileName) {
+    return false;
+  }
+
+  if (EDITABLE_TEXT_FILENAME_SET.has(fileName)) {
+    return true;
+  }
+
+  if (!fileName.includes(".")) {
+    return true;
+  }
+
+  return [...EDITABLE_TEXT_EXTENSION_SET].some((extension) => normalizedLowerCasePath.endsWith(extension));
 };
 
 const ZIP_MIME_TYPES = new Set(["application/zip", "application/x-zip-compressed", "multipart/x-zip"]);
@@ -134,7 +223,8 @@ export const parseZipFileToTree = async (zipFile: File): Promise<FileNode[]> => 
     const lastSlashIndex = normalizedEntryPath.lastIndexOf("/");
     const parentFolderPath = lastSlashIndex >= 0 ? normalizedEntryPath.slice(0, lastSlashIndex) : "";
     const fileName = lastSlashIndex >= 0 ? normalizedEntryPath.slice(lastSlashIndex + 1) : normalizedEntryPath;
-    const isBinary = isBinaryImageFile(normalizedEntryPath);
+    const isEditableText = getIsEditableTextFile(normalizedEntryPath);
+    const isBinary = isEditableText ? false : isBinaryImageFile(normalizedEntryPath);
 
     let fileContent = "";
     if (isBinary) {
@@ -151,6 +241,7 @@ export const parseZipFileToTree = async (zipFile: File): Promise<FileNode[]> => 
       type: "file",
       path: normalizedEntryPath,
       content: fileContent,
+      isEditableText,
       isBinary,
       haveUnsavedChange: false,
     };

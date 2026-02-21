@@ -208,9 +208,20 @@ function MonacoEditorContainer({
 
         <S.MonacoHost
           ref={monacoHostRef}
-          style={{display: activeFile?.isBinary || !editorActiveFilePath ? "none" : "block"}}
+          style={{
+            display:
+              activeFile?.isBinary || !editorActiveFilePath ? "none" : activeFile?.isEditableText ? "block" : "none",
+          }}
         />
+
+        <S.EditorErrorFallback
+          $themeMode={theme}
+          style={{display: activeFile && !activeFile.isEditableText ? "flex" : "none"}}
+        >
+          <p>이 파일은 편집할 수 없는 형식입니다.</p>
+        </S.EditorErrorFallback>
       </S.EditorBody>
+      <S.EditorBody style={{display: activeFile ? "block" : "none"}}></S.EditorBody>
       <CustomModal
         modalType="multiBtns"
         isOpen={isSaveModalOpen}

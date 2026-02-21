@@ -6,6 +6,7 @@ import {useEditorStore} from "@/src/store/useEditorStore";
 
 import {appendFileNodeToTargetFolder, appendFolderNodeToTargetFolder, getParentPath} from "../logic/addFileFolderLogic";
 import {getNodeByPathFromIndex} from "../logic/treeHandlingLogic";
+import {getIsEditableTextFile} from "../../zip-handler";
 
 interface UseAddFileFolderProps {
   fileTree: FileNode[];
@@ -119,6 +120,8 @@ function useAddFileFolder({
 
     const nextFilePath = pendingAddTargetFolderPath ? `${pendingAddTargetFolderPath}/${nextInputName}` : nextInputName;
 
+    const isEditableText = getIsEditableTextFile(nextFilePath);
+
     const newFileNode: FileNode = {
       id: `node:${nextFilePath}`,
       name: nextInputName,
@@ -126,6 +129,7 @@ function useAddFileFolder({
       path: nextFilePath,
       content: "",
       isBinary: false,
+      isEditableText: isEditableText,
       haveUnsavedChange: false,
     };
 
