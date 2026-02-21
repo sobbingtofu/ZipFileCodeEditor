@@ -5,6 +5,7 @@ import {buildRenamedFilePath, updateTargetFileNodeInTree} from "../logic/renameF
 import {useEditorStore} from "@/src/store/useEditorStore";
 import useScrollTreeToTargetFile from "./useScrollTreeToTargetFile";
 import {getNodeByPathFromIndex} from "../logic/treeHandlingLogic";
+import {getFileTypePropsByPath} from "../../zip-handler";
 
 interface UseRenameFileProps {
   treeScrollAreaRef: RefObject<HTMLDivElement | null>;
@@ -65,7 +66,8 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
     }
 
     const nextPath = buildRenamedFilePath(renamingTargetPath, nextName);
-    const renamedTree = updateTargetFileNodeInTree(fileTree, renamingTargetPath, nextName, nextPath);
+    const fileTypeOptions = originalNode.type === "file" ? getFileTypePropsByPath(nextPath) : undefined;
+    const renamedTree = updateTargetFileNodeInTree(fileTree, renamingTargetPath, nextName, nextPath, fileTypeOptions);
 
     setFileTree(renamedTree);
     replaceOpenedFilePath(renamingTargetPath, nextPath);

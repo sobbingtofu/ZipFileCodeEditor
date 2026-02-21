@@ -120,6 +120,14 @@ export const getIsEditableTextFile = (filePath: string): boolean => {
   return [...EDITABLE_TEXT_EXTENSION_SET].some((extension) => normalizedLowerCasePath.endsWith(extension));
 };
 
+/** 파일 경로 기준으로 텍스트 편집 가능 여부와 바이너리 여부를 판별하는 함수 */
+export const getFileTypePropsByPath = (filePath: string): {isEditableText: boolean; isBinary: boolean} => {
+  const isEditableText = getIsEditableTextFile(filePath);
+  const isBinary = isEditableText ? false : isBinaryImageFile(filePath);
+
+  return {isEditableText, isBinary};
+};
+
 const ZIP_MIME_TYPES = new Set(["application/zip", "application/x-zip-compressed", "multipart/x-zip"]);
 
 /** - 파일이 Zip 파일인지 검사
@@ -223,8 +231,7 @@ export const parseZipFileToTree = async (zipFile: File): Promise<FileNode[]> => 
     const lastSlashIndex = normalizedEntryPath.lastIndexOf("/");
     const parentFolderPath = lastSlashIndex >= 0 ? normalizedEntryPath.slice(0, lastSlashIndex) : "";
     const fileName = lastSlashIndex >= 0 ? normalizedEntryPath.slice(lastSlashIndex + 1) : normalizedEntryPath;
-    const isEditableText = getIsEditableTextFile(normalizedEntryPath);
-    const isBinary = isEditableText ? false : isBinaryImageFile(normalizedEntryPath);
+    const {isEditableText, isBinary} = getFileTypePropsByPath(normalizedEntryPath);
 
     let fileContent = "";
     if (isBinary) {

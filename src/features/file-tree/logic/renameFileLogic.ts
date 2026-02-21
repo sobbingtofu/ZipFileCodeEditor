@@ -64,6 +64,7 @@ export const updateTargetFileNodeInTree = (
   targetPath: string,
   nextName: string,
   nextPath: string,
+  options?: {isEditableText?: boolean; isBinary?: boolean},
 ): FileNode[] => {
   return nodes.map((node) => {
     if (node.path === targetPath) {
@@ -73,6 +74,8 @@ export const updateTargetFileNodeInTree = (
           id: `node:${nextPath}`,
           name: nextName,
           path: nextPath,
+          isEditableText: options?.isEditableText,
+          isBinary: options?.isBinary,
         };
       }
 
@@ -95,7 +98,7 @@ export const updateTargetFileNodeInTree = (
     if (node.type === "folder" && node.children) {
       return {
         ...node,
-        children: updateTargetFileNodeInTree(node.children, targetPath, nextName, nextPath),
+        children: updateTargetFileNodeInTree(node.children, targetPath, nextName, nextPath, options),
       };
     }
 
