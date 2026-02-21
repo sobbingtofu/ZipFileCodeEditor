@@ -1,6 +1,6 @@
 "use client";
 
-import {DragEvent, useCallback, useMemo, useRef, useState} from "react";
+import {DragEvent, useMemo, useRef, useState} from "react";
 
 import * as S from "@/src/features/file-tree/components/FileTree.styles";
 
@@ -43,6 +43,7 @@ function FileTree() {
     onInvalidRenameName: () => {
       setTreeErrMsg("파일 이름에는 특수문자 /와 \\를 사용할 수 없습니다.");
       setIsTreeAlertOpen(true);
+      handleRenameCancel();
     },
   });
 
@@ -82,7 +83,7 @@ function FileTree() {
             <S.TreeHeaderButton
               $themeMode={theme}
               aria-label="Rename"
-              title="Rename"
+              title="Rename / F2"
               onMouseDown={(event) => {
                 event.preventDefault();
               }}

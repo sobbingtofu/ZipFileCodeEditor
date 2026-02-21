@@ -1,4 +1,4 @@
-import {RefObject, useCallback, useState} from "react";
+import {RefObject, useCallback, useEffect, useState} from "react";
 import {findNodeByPath} from "../logic/findNodeByPath";
 import {useFileStore} from "@/src/store/useFileStore";
 import {FileNode} from "@/src/types/fileType";
@@ -108,7 +108,7 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
     onInvalidRenameName,
   ]);
 
-  const handleRenameBtnClick = () => {
+  const handleRenameBtnClick = useCallback(() => {
     if (!selectedFileFolderPath) {
       return;
     }
@@ -130,7 +130,43 @@ function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onI
 
     setRenamingTargetPath(selectedFileFolderPath);
     setRenameInputValue(activeNode.name);
-  };
+  }, [
+    fileTree,
+    renamingTargetPath,
+    selectedFileFolderPath,
+    handleRenameCancel,
+    scrollToRenamingFile,
+    triggerShowInTreeTargetPath,
+  ]);
+
+  // F2 키를 누르면 이름 변경 모드 진입 & submit 처리
+  useEffect(() => {
+    const handleF2KeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "F2") {
+        return;
+      }
+
+      if (!selectedFileFolderPath) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (renamingTargetPath) {
+        handleRenameSubmit();
+        return;
+      }
+
+      handleRenameBtnClick();
+    };
+
+    window.addEventListener("keydown", handleF2KeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleF2KeyDown);
+    };
+  }, [handleRenameBtnClick, handleRenameSubmit, renamingTargetPath, selectedFileFolderPath]);
 
   return {
     renamingTargetPath,
