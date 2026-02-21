@@ -86,7 +86,6 @@ export const CloseButton = styled.button`
 
 export const PathNameIndicatorBar = styled.div`
   height: 24px;
-  width: 100%;
   border-bottom: 1px solid #2a2a2a;
   display: flex;
   font-size: 12px;
@@ -99,7 +98,7 @@ export const EditorBody = styled.div`
   min-height: 0;
   position: relative;
   overflow: hidden;
-  padding: 24px 0px 0px 0px;
+  padding: 16px 0px 0px 0px;
 `;
 
 export const MonacoHost = styled.div`
