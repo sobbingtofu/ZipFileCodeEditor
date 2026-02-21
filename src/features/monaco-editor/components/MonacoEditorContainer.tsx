@@ -16,11 +16,15 @@ import {CustomModal} from "@/src/features/custom-modal";
 interface MonacoEditorContainerEditorContainerProps {
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
   onFlushActiveFileMonacoToZustandChange: (flushActiveFileMonacoToZustand: () => void) => void;
+  onUndoActiveFileMonacoChange: (undoActiveFileMonaco: () => void) => void;
+  onRedoActiveFileMonacoChange: (redoActiveFileMonaco: () => void) => void;
 }
 
 function MonacoEditorContainer({
   onFlushAllMonacoToZustandChange,
   onFlushActiveFileMonacoToZustandChange,
+  onUndoActiveFileMonacoChange,
+  onRedoActiveFileMonacoChange,
 }: MonacoEditorContainerEditorContainerProps) {
   const fileTree = useFileStore((state) => state.fileTree);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -70,6 +74,8 @@ function MonacoEditorContainer({
     activeFile,
     onFlushAllMonacoToZustandChange,
     onFlushActiveFileMonacoToZustandChange,
+    onUndoActiveFileMonacoChange,
+    onRedoActiveFileMonacoChange,
     handleTabClose,
   });
 

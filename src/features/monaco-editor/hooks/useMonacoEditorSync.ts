@@ -11,6 +11,8 @@ interface UseMonacoEditorSyncProps {
   activeFile: FileNode | null;
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
   onFlushActiveFileMonacoToZustandChange: (flushActiveFileMonacoToZustand: () => void) => void;
+  onUndoActiveFileMonacoChange: (undoActiveFileMonaco: () => void) => void;
+  onRedoActiveFileMonacoChange: (redoActiveFileMonaco: () => void) => void;
   autoSave?: boolean;
   handleTabClose: (filePath: string) => void;
 }
@@ -29,6 +31,8 @@ function useMonacoEditorSync({
   autoSave = false,
   handleTabClose,
   onFlushActiveFileMonacoToZustandChange,
+  onUndoActiveFileMonacoChange,
+  onRedoActiveFileMonacoChange,
 }: UseMonacoEditorSyncProps): UseMonacoEditorSyncResult {
   const updateFileContentByPath = useFileStore((state) => state.updateFileContentByPath);
   const setHaveUnsavedChangeByPath = useFileStore((state) => state.setHaveUnsavedChangeByPath);
@@ -81,6 +85,26 @@ function useMonacoEditorSync({
       savedAlternativeVersionIdByPathRef.current.set(modelPath, model.getAlternativeVersionId());
     }
   }, [updateFileContentByPath]);
+
+  /** 현재 활성 파일의 Monaco 모델에서 undo 실행하는 함수 */
+  const undoActiveFileMonaco = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor || !activeModelPathRef.current) {
+      return;
+    }
+
+    editor.trigger("top-bar", "undo", null);
+  }, []);
+
+  /** 현재 활성 파일의 Monaco 모델에서 redo 실행하는 함수 */
+  const redoActiveFileMonaco = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor || !activeModelPathRef.current) {
+      return;
+    }
+
+    editor.trigger("top-bar", "redo", null);
+  }, []);
 
   /**
    * Monaco 모델의 내용을 Zustand 스토어에 저장된 내용으로 롤백하는 함수
@@ -163,6 +187,24 @@ function useMonacoEditorSync({
       onFlushActiveFileMonacoToZustandChange(() => {});
     };
   }, [onFlushActiveFileMonacoToZustandChange, flushMonacoToZustandByFilePath]);
+
+  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 undoActiveFileMonaco 함수 전달
+  useEffect(() => {
+    onUndoActiveFileMonacoChange(undoActiveFileMonaco);
+
+    return () => {
+      onUndoActiveFileMonacoChange(() => {});
+    };
+  }, [onUndoActiveFileMonacoChange, undoActiveFileMonaco]);
+
+  // 부모 컴포넌트에서 이 함수를 사용할 수 있도록 redoActiveFileMonaco 함수 전달
+  useEffect(() => {
+    onRedoActiveFileMonacoChange(redoActiveFileMonaco);
+
+    return () => {
+      onRedoActiveFileMonacoChange(() => {});
+    };
+  }, [onRedoActiveFileMonacoChange, redoActiveFileMonaco]);
 
   // Monaco Editor 초기화 및 정리
   useEffect(() => {

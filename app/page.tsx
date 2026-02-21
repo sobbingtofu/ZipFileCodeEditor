@@ -15,6 +15,8 @@ export default function Home() {
   const [isUnsavedAlertOpen, setIsUnsavedAlertOpen] = useState(false);
   const [flushAllMonacoToZustand, setFlushAllMonacoToZustand] = useState<() => void>(() => () => {});
   const [flushActiveFileMonacoToZustand, setFlushActiveFileMonacoToZustand] = useState<() => void>(() => () => {});
+  const [undoActiveFileMonaco, setUndoActiveFileMonaco] = useState<() => void>(() => () => {});
+  const [redoActiveFileMonaco, setRedoActiveFileMonaco] = useState<() => void>(() => () => {});
 
   const {leftPanelWidth, handleResizeStart} = useHandleTreeContainerWidth({bodyLayoutRef});
 
@@ -32,6 +34,14 @@ export default function Home() {
 
   const handleFlushActiveFileMonacoToZustandChange = useCallback((flushActive: () => void) => {
     setFlushActiveFileMonacoToZustand(() => flushActive);
+  }, []);
+
+  const handleUndoActiveFileMonacoChange = useCallback((undoActive: () => void) => {
+    setUndoActiveFileMonaco(() => undoActive);
+  }, []);
+
+  const handleRedoActiveFileMonacoChange = useCallback((redoActive: () => void) => {
+    setRedoActiveFileMonaco(() => redoActive);
   }, []);
 
   const handleCloseUnsavedModal = () => {
@@ -86,7 +96,7 @@ export default function Home() {
                 type="button"
                 aria-label="Undo"
                 title="Undo / Ctrl+Z"
-                onClick={() => {}}
+                onClick={() => undoActiveFileMonaco()}
                 disabled={fileTree.length === 0 || isLoading}
               >
                 <UndoIcon />
@@ -95,7 +105,7 @@ export default function Home() {
                 type="button"
                 aria-label="Redo"
                 title="Redo / Ctrl+Y"
-                onClick={() => {}}
+                onClick={() => redoActiveFileMonaco()}
                 disabled={fileTree.length === 0 || isLoading}
               >
                 <RedoIcon />
@@ -125,6 +135,8 @@ export default function Home() {
           <MonacoEditorContainer
             onFlushAllMonacoToZustandChange={handleFlushAllMonacoToZustandChange}
             onFlushActiveFileMonacoToZustandChange={handleFlushActiveFileMonacoToZustandChange}
+            onUndoActiveFileMonacoChange={handleUndoActiveFileMonacoChange}
+            onRedoActiveFileMonacoChange={handleRedoActiveFileMonacoChange}
           />
         </S.RightPanel>
       </S.BodyLayout>
