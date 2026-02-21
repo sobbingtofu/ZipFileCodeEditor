@@ -1,4 +1,4 @@
-# 📦 Zip Code Editor - Feature Based 아키텍처 기반 코드베이스 편집기
+# 📦 Simple Code Editor - 코드베이스 Zip 파일 편집기
 
 **Zip 형태의 코드베이스를 업로드하면 트리 UI로 탐색하고, Monaco Editor로 파일을 편집한 뒤 다시 Zip으로 다운로드할 수 있는 웹 에디터입니다.**
 
