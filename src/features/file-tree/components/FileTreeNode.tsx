@@ -1,5 +1,5 @@
 import {FileNode} from "@/src/types/fileType";
-import {memo, useEffect, useState} from "react";
+import {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
 
 import * as S from "@/src/features/file-tree/components/FileTree.styles";
 import {useEditorStore} from "@/src/store/useEditorStore";
@@ -12,6 +12,11 @@ interface FileTreeNodeProps {
   activeFilePath: string | null;
   theme: "light" | "dark";
   collapseAllSignal: number;
+  renamingTargetPath: string | null;
+  renameInitialName: string;
+  onRenameChange: (nextName: string) => void;
+  onRenameSubmit: () => void;
+  onRenameCancel: () => void;
 }
 
 const FileTreeNode = memo(function FileTreeNode({
@@ -20,14 +25,21 @@ const FileTreeNode = memo(function FileTreeNode({
   activeFilePath,
   theme,
   collapseAllSignal,
+  renamingTargetPath,
+  renameInitialName,
+  onRenameChange,
+  onRenameSubmit,
+  onRenameCancel,
 }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
 
   const revealTargetPath = useFileStore((state) => state.showInTreeTargetPath);
   const revealSignal = useFileStore((state) => state.showSignal);
 
   const isFolder = node.type === "folder";
   const isActive = !isFolder && node.path === activeFilePath;
+  const isRenaming = !isFolder && node.path === renamingTargetPath;
 
   const openFileTab = useEditorStore((state) => state.openFileTab);
 
@@ -52,24 +64,77 @@ const FileTreeNode = memo(function FileTreeNode({
     }
   }, [isFolder, node.path, revealSignal, revealTargetPath]);
 
-  const handleSelectFile = (selectedFileNode: FileNode) => {
-    openFileTab(selectedFileNode.path);
-  };
+  // isRenaming이 true가 되면 renameInputRef에 포커스 및 텍스트 선택 처리
+  useEffect(() => {
+    if (!isRenaming || !renameInputRef.current) {
+      return;
+    }
+
+    renameInputRef.current.focus();
+    renameInputRef.current.select();
+  }, [isRenaming]);
 
   const handleClickNode = () => {
     if (isFolder) {
       setIsExpanded((prev) => !prev);
       return;
     }
+    console.log("Open file:", node.path);
+    openFileTab(node.path);
+  };
 
-    handleSelectFile(node);
+  const handleRenameInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      onRenameSubmit();
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onRenameCancel();
+    }
   };
 
   return (
     <>
-      <S.TreeNodeDiv $depth={depth} $isActive={isActive} $themeMode={theme} onClick={handleClickNode}>
+      <S.TreeNodeDiv
+        $depth={depth}
+        $isActive={isActive}
+        $themeMode={theme}
+        onClick={handleClickNode}
+        data-file-path={node.path}
+      >
         {isFolder ? <S.FolderPrefix>{isExpanded ? "📂" : "📁"}</S.FolderPrefix> : <S.FolderPrefix>📄</S.FolderPrefix>}
-        {node.name}
+        {isRenaming ? (
+          <S.RenameInputWrapper onClick={(event) => event.stopPropagation()}>
+            <S.RenameInput
+              ref={renameInputRef}
+              $themeMode={theme}
+              value={renameInitialName}
+              onChange={(event) => onRenameChange(event.target.value)}
+              onBlur={onRenameSubmit}
+              onKeyDown={handleRenameInputKeyDown}
+            />
+            <S.RenameCancelButton
+              type="button"
+              $themeMode={theme}
+              aria-label="Cancel rename"
+              title="Cancel rename"
+              onMouseDown={(event) => {
+                event.preventDefault();
+              }}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRenameCancel();
+              }}
+            >
+              ×
+            </S.RenameCancelButton>
+          </S.RenameInputWrapper>
+        ) : (
+          <p>{node.name}</p>
+        )}
       </S.TreeNodeDiv>
 
       {isFolder &&
@@ -82,6 +147,11 @@ const FileTreeNode = memo(function FileTreeNode({
             activeFilePath={activeFilePath}
             theme={theme}
             collapseAllSignal={collapseAllSignal}
+            renamingTargetPath={renamingTargetPath}
+            renameInitialName={renameInitialName}
+            onRenameChange={onRenameChange}
+            onRenameSubmit={onRenameSubmit}
+            onRenameCancel={onRenameCancel}
           />
         ))}
     </>

@@ -6,6 +6,7 @@ interface EditorStoreState {
   openFileTab: (filePath: string) => void;
   closeFileTab: (filePath: string) => void;
   setActiveFilePath: (filePath: string | null) => void;
+  replaceOpenedFilePath: (previousPath: string, nextPath: string) => void;
   resetEditorState: () => void;
 }
 
@@ -40,6 +41,12 @@ export const useEditorStore = create<EditorStoreState>((set) => ({
     }),
 
   setActiveFilePath: (filePath) => set({activeFilePath: filePath}),
+
+  replaceOpenedFilePath: (previousPath, nextPath) =>
+    set((state) => ({
+      openedFilePaths: state.openedFilePaths.map((openedPath) => (openedPath === previousPath ? nextPath : openedPath)),
+      activeFilePath: state.activeFilePath === previousPath ? nextPath : state.activeFilePath,
+    })),
 
   resetEditorState: () =>
     set({

@@ -111,6 +111,9 @@ export const TreeScrollArea = styled.div<{$isHovering: boolean; $themeMode: Them
 `;
 
 export const TreeNodeDiv = styled.div<{$depth: number; $isActive: boolean; $themeMode: ThemeMode}>`
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   min-width: 200px;
   border: 0;
   text-align: left;
@@ -143,4 +146,46 @@ export const UploadGuide = styled.div<{$themeMode: ThemeMode}>`
 export const FolderPrefix = styled.span`
   display: inline-block;
   width: 22px;
+`;
+
+export const RenameInputWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 6px;
+`;
+
+export const RenameInput = styled.input<{$themeMode: ThemeMode}>`
+  flex: 1;
+  min-width: 0;
+  border: 1px solid ${({$themeMode}) => ($themeMode === "light" ? "#cfcfcf" : "#3b3b3b")};
+  background: ${({$themeMode}) => ($themeMode === "light" ? "#ffffff" : "#1f1f1f")};
+  color: inherit;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 2px 6px;
+  height: 24px;
+
+  &:focus {
+    outline: 1px solid ${({$themeMode}) => ($themeMode === "light" ? "#9f9f9f" : "#5f5f5f")};
+  }
+`;
+
+export const RenameCancelButton = styled.button<{$themeMode: ThemeMode}>`
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 12px;
+  color: ${({$themeMode}) => ($themeMode === "light" ? "#4d4d4d" : "#d5d5d5")};
+  background: ${({$themeMode}) => ($themeMode === "light" ? "#e3e3e3" : "#323232")};
+
+  &:hover {
+    background: ${({$themeMode}) => ($themeMode === "light" ? "#d5d5d5" : "#3a3a3a")};
+  }
 `;

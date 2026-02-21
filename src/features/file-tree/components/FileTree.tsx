@@ -1,6 +1,6 @@
 "use client";
 
-import {DragEvent, useMemo, useState} from "react";
+import {DragEvent, useCallback, useMemo, useRef, useState} from "react";
 
 import * as S from "@/src/features/file-tree/components/FileTree.styles";
 
@@ -12,19 +12,39 @@ import {useHandleZipUpload} from "@/src/features/zip-handler";
 import {AddFileIcon, AddFolderIcon, CollapseIcon, RenameIcon, UploadIcon} from "@/public/icon";
 import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
+import {useRenameFile} from "../hooks/useRenameFile";
 
 function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
   const activeFilePath = useEditorStore((state) => state.activeFilePath);
   const hasNodes = useMemo(() => fileTree.length > 0, [fileTree]);
   const theme = useThemeStore((state) => state.theme);
+  const treeScrollAreaRef = useRef<HTMLDivElement | null>(null);
 
   const [isHovering, setIsHovering] = useState(false);
-  const [isZipAlertOpen, setIsZipAlertOpen] = useState(false);
-  const [uploadErrMsg, setUploadErrMsg] = useState("");
+  const [isTreeAlertOpen, setIsTreeAlertOpen] = useState(false);
+  const [treeErrMsg, setTreeErrMsg] = useState("");
+
   const [collapseAllSignal, setCollapseAllSignal] = useState(0);
 
   const {handleZipFileDrop, handleZipFileInputChange} = useHandleZipUpload();
+
+  const {
+    renamingTargetPath,
+    renameInputValue,
+    setRenameInputValue,
+    handleRenameSubmit,
+    handleRenameCancel,
+    handleRenameBtnClick,
+  } = useRenameFile({
+    treeScrollAreaRef,
+    fileTree,
+    activeFilePath,
+    onInvalidRenameName: () => {
+      setTreeErrMsg("파일 이름에는 특수문자 /와 \\를 사용할 수 없습니다.");
+      setIsTreeAlertOpen(true);
+    },
+  });
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -38,14 +58,14 @@ function FileTree() {
   const executeDropAndProcessResult = async (event: DragEvent<HTMLDivElement>) => {
     const result = await handleZipFileDrop(event);
     if (result && !result.success) {
-      setUploadErrMsg(result.error || "알 수 없는 오류가 발생했습니다.");
-      setIsZipAlertOpen(true);
+      setTreeErrMsg(result.error || "알 수 없는 오류가 발생했습니다.");
+      setIsTreeAlertOpen(true);
     }
   };
 
   const handleCloseZipAlert = () => {
-    setIsZipAlertOpen(false);
-    setUploadErrMsg("");
+    setIsTreeAlertOpen(false);
+    setTreeErrMsg("");
   };
 
   const handleCollapseAllFolders = () => {
@@ -58,8 +78,16 @@ function FileTree() {
         <h3>파일 탐색기</h3>
         {hasNodes && (
           <S.TreeHeaderButtonWrapper>
-            {/* 이름 변경 */}
-            <S.TreeHeaderButton $themeMode={theme} aria-label="Rename" title="Rename" onClick={() => {}}>
+            {/* 이름 변경 모드 토글 */}
+            <S.TreeHeaderButton
+              $themeMode={theme}
+              aria-label="Rename"
+              title="Rename"
+              onMouseDown={(event) => {
+                event.preventDefault();
+              }}
+              onClick={handleRenameBtnClick}
+            >
               <RenameIcon />
             </S.TreeHeaderButton>
 
@@ -120,6 +148,7 @@ function FileTree() {
       )}
       {hasNodes && (
         <S.TreeScrollArea
+          ref={treeScrollAreaRef}
           $themeMode={theme}
           $isHovering={isHovering}
           onMouseOver={() => {
@@ -141,11 +170,16 @@ function FileTree() {
               activeFilePath={activeFilePath}
               theme={theme}
               collapseAllSignal={collapseAllSignal}
+              renamingTargetPath={renamingTargetPath}
+              renameInitialName={renameInputValue}
+              onRenameChange={setRenameInputValue}
+              onRenameSubmit={handleRenameSubmit}
+              onRenameCancel={handleRenameCancel}
             />
           ))}
         </S.TreeScrollArea>
       )}
-      <CustomModal isOpen={isZipAlertOpen} onClose={handleCloseZipAlert} message={uploadErrMsg} />
+      <CustomModal isOpen={isTreeAlertOpen} onClose={handleCloseZipAlert} message={treeErrMsg} />
     </S.TreeContainer>
   );
 }
