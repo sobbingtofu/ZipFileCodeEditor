@@ -5,3 +5,5 @@ export * from "./SaveIcon";
 
 export * from "./DarkModeIcon";
 export * from "./LightModeIcon";
+
+export * from "./CollapseIcon";

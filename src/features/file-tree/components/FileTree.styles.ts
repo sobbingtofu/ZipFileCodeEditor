@@ -16,6 +16,17 @@ export const TreeHeader = styled.div<{$themeMode: ThemeMode}>`
   font-size: 13px;
   font-weight: 600;
   border-bottom: 1px solid ${({$themeMode}) => ($themeMode === "light" ? "#d9d9d9" : "#2a2a2a")};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const CollapseAllFolderButton = styled.button<{$themeMode: ThemeMode}>`
+  margin-top: 4px;
+  border: none;
+  background: transparent;
+  color: ${({$themeMode}) => ($themeMode === "light" ? "#232323" : "#f0f0f0")};
+  cursor: pointer;
 `;
 
 export const EmptyTreeContainer = styled.div<{$isHovering: boolean; $themeMode: ThemeMode}>`

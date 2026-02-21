@@ -9,7 +9,7 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
-import {UploadIcon} from "@/public/icon";
+import {CollapseIcon, UploadIcon} from "@/public/icon";
 import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
 
@@ -49,7 +49,12 @@ function FileTree() {
 
   return (
     <S.TreeContainer $themeMode={theme}>
-      <S.TreeHeader $themeMode={theme}>파일 탐색기</S.TreeHeader>
+      <S.TreeHeader $themeMode={theme}>
+        <h3>파일 탐색기</h3>
+        <S.CollapseAllFolderButton $themeMode={theme} aria-label="Collapse All" title="Collapse All Folders">
+          <CollapseIcon />
+        </S.CollapseAllFolderButton>
+      </S.TreeHeader>
       {!hasNodes && (
         <>
           <HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
