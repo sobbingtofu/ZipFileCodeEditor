@@ -8,7 +8,7 @@ import {useHandleZipDownload, useHandleZipUpload} from "@/src/features/zip-handl
 import {MonacoEditorContainer} from "@/src/features/monaco-editor";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useEditorStore} from "@/src/store/useEditorStore";
-import {RedoIcon, SaveIcon, UndoIcon} from "@/public/icon";
+import {RedoIcon, SaveIcon, UndoIcon} from "@/src/common/icon";
 import {ThemeToggleButton} from "@/src/features/theme";
 import {useThemeStore} from "@/src/store/useThemeStore";
 

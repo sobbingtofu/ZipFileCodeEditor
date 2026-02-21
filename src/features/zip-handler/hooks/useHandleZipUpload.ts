@@ -8,6 +8,7 @@ import {FileNode} from "@/src/types/fileType";
 function useHandleZipUpload() {
   const setFileTree = useFileStore((state) => state.setFileTree);
   const setIsLoading = useFileStore((state) => state.setIsLoading);
+  const setLoadingType = useFileStore((state) => state.setLoadingType);
   const openFileTab = useEditorStore((state) => state.openFileTab);
   const resetEditorState = useEditorStore((state) => state.resetEditorState);
 
@@ -37,6 +38,7 @@ function useHandleZipUpload() {
       }
 
       setIsLoading(true);
+      setLoadingType("upload");
 
       const parsedTree = await parseZipFileToTree(uploadedFile);
       setFileTree(parsedTree);
@@ -49,6 +51,7 @@ function useHandleZipUpload() {
       return {success: true, error: null};
     } finally {
       setIsLoading(false);
+      setLoadingType(null);
     }
   };
 

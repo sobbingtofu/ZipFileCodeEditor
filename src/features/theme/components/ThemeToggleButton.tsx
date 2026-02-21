@@ -1,4 +1,4 @@
-import {DarkModeIcon, LightModeIcon} from "@/public/icon";
+import {DarkModeIcon, LightModeIcon} from "@/src/common/icon";
 import {useThemeStore} from "@/src/store/useThemeStore";
 
 import * as S from "./ThemeToggleButton.styles";

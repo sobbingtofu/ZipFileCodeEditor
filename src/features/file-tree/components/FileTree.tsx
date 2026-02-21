@@ -9,7 +9,7 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
-import {AddFileIcon, AddFolderIcon, CollapseIcon, DeleteIcon, RenameIcon, UploadIcon} from "@/public/icon";
+import {AddFileIcon, AddFolderIcon, CollapseIcon, DeleteIcon, RenameIcon, UploadIcon} from "@/src/common/icon";
 import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
 import {useRenameFile} from "../hooks/useRenameFile";
