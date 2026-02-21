@@ -32,6 +32,7 @@ export function CustomModal({
   const modalRef = useRef<HTMLDivElement | null>(null);
   const theme = useThemeStore((state) => state.theme);
 
+  // 포털 안전장치
   useEffect(() => {
     setIsMounted(true);
     return () => {

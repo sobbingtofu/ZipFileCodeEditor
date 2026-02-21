@@ -8,6 +8,7 @@ import {useHandleZipDownload, useHandleZipUpload} from "@/src/features/zip-handl
 import {MonacoEditorContainer} from "@/src/features/monaco-editor";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useEditorStore} from "@/src/store/useEditorStore";
+import {Loader} from "@/src/common/components";
 import {RedoIcon, SaveIcon, UndoIcon} from "@/src/common/icon";
 import {ThemeToggleButton} from "@/src/features/theme";
 import {useThemeStore} from "@/src/store/useThemeStore";
@@ -161,6 +162,7 @@ export default function Home() {
           {btnName: "닫기", btnFunc: handleCloseUnsavedModal},
         ]}
       />
+      <Loader />
     </S.Main>
   );
 }
