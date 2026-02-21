@@ -4,6 +4,7 @@ import {useEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 
 import * as S from "@/src/features/custom-modal/components/CustomModal.styles";
+import {useThemeStore} from "@/src/store/useThemeStore";
 
 type ModalButtonInfo = {
   btnName: string;
@@ -29,6 +30,7 @@ export function CustomModal({
 }: CustomModalProps) {
   const [isMounted, setIsMounted] = useState(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
+  const theme = useThemeStore((state) => state.theme);
 
   useEffect(() => {
     setIsMounted(true);
@@ -66,21 +68,21 @@ export function CustomModal({
   }
 
   return createPortal(
-    <S.ModalBackdrop onClick={onClose}>
-      <S.CustomModal ref={modalRef} tabIndex={-1} onClick={(event) => event.stopPropagation()}>
-        <S.ModalDescription>{message}</S.ModalDescription>
+    <S.ModalBackdrop $themeMode={theme} onClick={onClose}>
+      <S.CustomModal $themeMode={theme} ref={modalRef} tabIndex={-1} onClick={(event) => event.stopPropagation()}>
+        <S.ModalDescription $themeMode={theme}>{message}</S.ModalDescription>
         <S.ModalButtonContainer>
           {modalType == "alert" && (
-            <S.ModalButton type="button" onClick={onClose}>
+            <S.ModalButton $themeMode={theme} type="button" onClick={onClose}>
               확인
             </S.ModalButton>
           )}
           {modalType == "confirm" && (
             <>
-              <S.ModalButton type="button" onClick={onClose}>
+              <S.ModalButton $themeMode={theme} type="button" onClick={onClose}>
                 취소
               </S.ModalButton>
-              <S.ModalButton type="button" onClick={onConfirm}>
+              <S.ModalButton $themeMode={theme} type="button" onClick={onConfirm}>
                 확인
               </S.ModalButton>
             </>
@@ -88,7 +90,12 @@ export function CustomModal({
           {modalType == "multiBtns" && (
             <>
               {btnInfo.map((buttonInfo, index) => (
-                <S.ModalButton key={`${buttonInfo.btnName}-${index}`} type="button" onClick={buttonInfo.btnFunc}>
+                <S.ModalButton
+                  $themeMode={theme}
+                  key={`${buttonInfo.btnName}-${index}`}
+                  type="button"
+                  onClick={buttonInfo.btnFunc}
+                >
                   {buttonInfo.btnName}
                 </S.ModalButton>
               ))}

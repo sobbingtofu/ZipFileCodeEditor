@@ -8,9 +8,10 @@ interface FileTreeNodeProps {
   node: FileNode;
   depth: number;
   activeFilePath: string | null;
+  theme: "light" | "dark";
 }
 
-const FileTreeNode = memo(function FileTreeNode({node, depth, activeFilePath}: FileTreeNodeProps) {
+const FileTreeNode = memo(function FileTreeNode({node, depth, activeFilePath, theme}: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const isFolder = node.type === "folder";
@@ -32,7 +33,7 @@ const FileTreeNode = memo(function FileTreeNode({node, depth, activeFilePath}: F
 
   return (
     <>
-      <S.TreeNodeDiv $depth={depth} $isActive={isActive} onClick={handleClickNode}>
+      <S.TreeNodeDiv $depth={depth} $isActive={isActive} $themeMode={theme} onClick={handleClickNode}>
         {isFolder ? <S.FolderPrefix>{isExpanded ? "📂" : "📁"}</S.FolderPrefix> : <S.FolderPrefix>📄</S.FolderPrefix>}
         {node.name}
       </S.TreeNodeDiv>
@@ -40,7 +41,13 @@ const FileTreeNode = memo(function FileTreeNode({node, depth, activeFilePath}: F
       {isFolder &&
         isExpanded &&
         node.children?.map((childNode) => (
-          <FileTreeNode key={childNode.id} node={childNode} depth={depth + 1} activeFilePath={activeFilePath} />
+          <FileTreeNode
+            key={childNode.id}
+            node={childNode}
+            depth={depth + 1}
+            activeFilePath={activeFilePath}
+            theme={theme}
+          />
         ))}
     </>
   );

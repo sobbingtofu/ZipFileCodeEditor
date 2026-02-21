@@ -5,6 +5,7 @@ import type * as MonacoEditor from "monaco-editor";
 import {FileNode} from "@/src/types/fileType";
 import {findFileNodeInTree, useFileStore} from "@/src/store/useFileStore";
 import {getLanguageByFilePath} from "../logic/editorLogics";
+import {ThemeMode, useThemeStore} from "@/src/store/useThemeStore";
 
 interface UseMonacoEditorSyncProps {
   activeFilePath: string | null;
@@ -36,6 +37,7 @@ function useMonacoEditorSync({
 }: UseMonacoEditorSyncProps): UseMonacoEditorSyncResult {
   const updateFileContentByPath = useFileStore((state) => state.updateFileContentByPath);
   const setHaveUnsavedChangeByPath = useFileStore((state) => state.setHaveUnsavedChangeByPath);
+  const theme = useThemeStore((state) => state.theme);
 
   const monacoHostRef = useRef<HTMLDivElement | null>(null);
   const monacoRef = useRef<typeof MonacoEditor | null>(null);
@@ -225,7 +227,7 @@ function useMonacoEditorSync({
         automaticLayout: true,
         minimap: {enabled: false},
         fontSize: 13,
-        theme: "vs-dark",
+        theme: theme === "light" ? "vs" : "vs-dark",
       });
 
       onDidChangeModelContentRef.current = editor.onDidChangeModelContent(() => {
@@ -293,6 +295,14 @@ function useMonacoEditorSync({
       activeModelPathRef.current = null;
     };
   }, [autoSave, flushMonacoToZustandByFilePath, setHaveUnsavedChangeByPath]);
+
+  useEffect(() => {
+    if (!monacoRef.current) {
+      return;
+    }
+
+    monacoRef.current.editor.setTheme(theme === "light" ? "vs" : "vs-dark");
+  }, [theme]);
 
   // 선택된 파일이 변경될 때마다 해당 파일에 맞는 Monaco 모델로 에디터를 업데이트
   useEffect(() => {

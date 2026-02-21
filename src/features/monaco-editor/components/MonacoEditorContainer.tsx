@@ -12,6 +12,7 @@ import {getTabName} from "../logic/editorLogics";
 import {useMonacoEditorSync} from "@/src/features/monaco-editor";
 import Image from "next/image";
 import {CustomModal} from "@/src/features/custom-modal";
+import {useThemeStore} from "@/src/store/useThemeStore";
 
 interface MonacoEditorContainerEditorContainerProps {
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
@@ -28,6 +29,7 @@ function MonacoEditorContainer({
 }: MonacoEditorContainerEditorContainerProps) {
   const fileTree = useFileStore((state) => state.fileTree);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const theme = useThemeStore((state) => state.theme);
 
   const activeFilePath = useEditorStore((state) => state.activeFilePath);
   const openedFilePaths = useEditorStore((state) => state.openedFilePaths);
@@ -111,18 +113,20 @@ function MonacoEditorContainer({
   };
 
   return (
-    <S.EditorWrapper>
-      <S.TabContainer>
+    <S.EditorWrapper $themeMode={theme}>
+      <S.TabContainer $themeMode={theme}>
         {openedFilePaths.map((openedPath) => (
           <S.TabDiv
             key={openedPath}
             $isActive={openedPath === activeFilePath}
+            $themeMode={theme}
             onClick={() => handleTabClick(openedPath)}
           >
             <S.TabLabel>{getTabName(openedPath)}</S.TabLabel>
             <S.TabActionGroup>
-              <S.UnsavedDot $visible={Boolean(unsavedByPath[openedPath])} />
+              <S.UnsavedDot $themeMode={theme} $visible={Boolean(unsavedByPath[openedPath])} />
               <S.CloseButton
+                $themeMode={theme}
                 type="button"
                 onClick={() => {
                   handleTabClose(openedPath);
@@ -135,12 +139,12 @@ function MonacoEditorContainer({
         ))}
       </S.TabContainer>
       {activeFilePath && (
-        <S.PathNameIndicatorBar>
+        <S.PathNameIndicatorBar $themeMode={theme}>
           <span>{activeFilePath.replace(/\\/g, "/").replace(/\//g, " > ")}</span>
         </S.PathNameIndicatorBar>
       )}
       <S.EditorBody>
-        {!activeFilePath && <S.EmptyState>왼쪽 파일 트리에서 파일을 선택하세요.</S.EmptyState>}
+        {!activeFilePath && <S.EmptyState $themeMode={theme}>왼쪽 파일 트리에서 파일을 선택하세요.</S.EmptyState>}
 
         {activeFilePath && activeFile?.isBinary && (
           <S.ImageViewer>

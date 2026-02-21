@@ -12,15 +12,15 @@ function LightModeIcon(props: SVGProps<SVGSVGElement>) {
       focusable="false"
       {...props}
     >
-      <circle cx="12" cy="12" r="4" stroke="#272727" strokeWidth="1.7" />
-      <path d="M12 3V5.5" stroke="#272727" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M12 18.5V21" stroke="#272727" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M3 12H5.5" stroke="#272727" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M18.5 12H21" stroke="#272727" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M5.64 5.64L7.41 7.41" stroke="#272727" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M16.59 16.59L18.36 18.36" stroke="#272727" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M5.64 18.36L7.41 16.59" stroke="#272727" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M16.59 7.41L18.36 5.64" stroke="#272727" strokeWidth="1.7" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 3V5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M12 18.5V21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M3 12H5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M18.5 12H21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M5.64 5.64L7.41 7.41" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M16.59 16.59L18.36 18.36" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M5.64 18.36L7.41 16.59" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M16.59 7.41L18.36 5.64" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }

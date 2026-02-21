@@ -74,17 +74,18 @@ export default function Home() {
   const theme = useThemeStore((state) => state.theme);
 
   return (
-    <S.Main>
-      <S.TopBar>
+    <S.Main $themeMode={theme}>
+      <S.TopBar $themeMode={theme}>
         <S.TopBarTitle>Zip File Code Editor</S.TopBarTitle>
         <S.TopBarActionContainer>
           <S.TopBarFileActions>
-            <S.ZipUploadLabel htmlFor="zip-upload-input" aria-label="Upload-Zip">
+            <S.ZipUploadLabel $themeMode={theme} htmlFor="zip-upload-input" aria-label="Upload-Zip">
               Zip 업로드
             </S.ZipUploadLabel>
             <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
 
             <S.TopBarButton
+              $themeMode={theme}
               type="button"
               onClick={handleDownloadButtonClick}
               disabled={fileTree.length === 0 || isLoading}
@@ -97,6 +98,7 @@ export default function Home() {
             {activeFilePath && (
               <S.TopBarEditorActions>
                 <S.TopBarButton
+                  $themeMode={theme}
                   type="button"
                   aria-label="Undo"
                   title="Undo / Ctrl+Z"
@@ -106,6 +108,7 @@ export default function Home() {
                   <UndoIcon />
                 </S.TopBarButton>
                 <S.TopBarButton
+                  $themeMode={theme}
                   type="button"
                   aria-label="Redo"
                   title="Redo / Ctrl+Y"
@@ -115,6 +118,7 @@ export default function Home() {
                   <RedoIcon />
                 </S.TopBarButton>
                 <S.TopBarButton
+                  $themeMode={theme}
                   type="button"
                   aria-label="Save"
                   title="Save / Ctrl+S"
@@ -135,7 +139,7 @@ export default function Home() {
           <FileTree />
         </S.LeftPanel>
 
-        <S.PanelResizer onMouseDown={handleResizeStart} />
+        <S.PanelResizer $themeMode={theme} onMouseDown={handleResizeStart} />
 
         <S.RightPanel>
           <MonacoEditorContainer

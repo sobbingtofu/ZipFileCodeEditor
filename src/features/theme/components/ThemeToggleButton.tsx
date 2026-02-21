@@ -8,7 +8,13 @@ function ThemeToggleButton() {
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
 
   return (
-    <S.ThemeToggleButton theme={theme} onClick={toggleTheme}>
+    <S.ThemeToggleButton
+      type="button"
+      $themeMode={theme}
+      onClick={toggleTheme}
+      aria-label="Toggle Theme"
+      title={theme === "light" ? "다크모드로 전환" : "라이트모드로 전환"}
+    >
       {theme === "light" ? <DarkModeIcon /> : <LightModeIcon />}
     </S.ThemeToggleButton>
   );

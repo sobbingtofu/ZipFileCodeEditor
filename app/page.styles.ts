@@ -1,21 +1,22 @@
+import {ThemeMode} from "@/src/store/useThemeStore";
 import styled from "styled-components";
 
-export const Main = styled.main`
+export const Main = styled.main<{$themeMode: ThemeMode}>`
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #111111;
-  color: #f0f0f0;
+  background: ${({$themeMode}) => ($themeMode === "light" ? "#f5f5f5" : "#111111")};
+  color: ${({$themeMode}) => ($themeMode === "light" ? "#1f1f1f" : "#f0f0f0")};
 `;
 
-export const TopBar = styled.header`
+export const TopBar = styled.header<{$themeMode: ThemeMode}>`
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 48px;
   padding: 10px 20px 10px 14px;
-  border-bottom: 1px solid #2a2a2a;
-  background: #171717;
+  border-bottom: 1px solid ${({$themeMode}) => ($themeMode === "light" ? "#d9d9d9" : "#2a2a2a")};
+  background: ${({$themeMode}) => ($themeMode === "light" ? "#ffffff" : "#171717")};
 `;
 
 export const TopBarTitle = styled.h1`
@@ -51,19 +52,19 @@ export const TopBarEditorActions = styled.div`
   gap: 8px;
 `;
 
-export const ZipUploadLabel = styled.label`
+export const ZipUploadLabel = styled.label<{$themeMode: ThemeMode}>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
   height: 32px;
   padding: 0 12px;
   border-radius: 8px;
-  border: 1px solid #3b3b3b;
+  border: 1px solid ${({$themeMode}) => ($themeMode === "light" ? "#cfcfcf" : "#3b3b3b")};
   cursor: pointer;
   font-size: 13px;
-  background: #252525;
+  background: ${({$themeMode}) => ($themeMode === "light" ? "#f2f2f2" : "#252525")};
   &:hover {
-    background: #2f2f2f;
+    background: ${({$themeMode}) => ($themeMode === "light" ? "#e8e8e8" : "#2f2f2f")};
   }
 `;
 
@@ -71,18 +72,18 @@ export const HiddenFileInput = styled.input`
   display: none;
 `;
 
-export const TopBarButton = styled.button`
+export const TopBarButton = styled.button<{$themeMode: ThemeMode}>`
   height: 32px;
   padding: 0 12px;
   border-radius: 8px;
-  border: 1px solid #3b3b3b;
-  background: #252525;
-  color: #f0f0f0;
+  border: 1px solid ${({$themeMode}) => ($themeMode === "light" ? "#cfcfcf" : "#3b3b3b")};
+  background: ${({$themeMode}) => ($themeMode === "light" ? "#f2f2f2" : "#252525")};
+  color: ${({$themeMode}) => ($themeMode === "light" ? "#232323" : "#f0f0f0")};
   cursor: pointer;
   font-size: 13px;
 
   &:hover:not(:disabled) {
-    background: #2f2f2f;
+    background: ${({$themeMode}) => ($themeMode === "light" ? "#e8e8e8" : "#2f2f2f")};
   }
 
   &:disabled {
@@ -105,14 +106,14 @@ export const LeftPanel = styled.div`
   flex-shrink: 0;
 `;
 
-export const PanelResizer = styled.div`
+export const PanelResizer = styled.div<{$themeMode: ThemeMode}>`
   width: 6px;
   min-height: 0;
   cursor: col-resize;
   background: transparent;
 
   &:hover {
-    background: #2a2a2a;
+    background: ${({$themeMode}) => ($themeMode === "light" ? "#d9d9d9" : "#2a2a2a")};
   }
 `;
 
