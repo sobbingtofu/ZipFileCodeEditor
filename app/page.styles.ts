@@ -38,6 +38,13 @@ export const TopBarFileActions = styled.div`
   gap: 8px;
 `;
 
+export const TopBarEditorActionThemeToggleWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  justify-content: flex-end;
+`;
+
 export const TopBarEditorActions = styled.div`
   display: flex;
   align-items: center;

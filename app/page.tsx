@@ -9,6 +9,8 @@ import {MonacoEditorContainer} from "@/src/features/monaco-editor";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {RedoIcon, SaveIcon, UndoIcon} from "@/public/icon";
+import {ThemeToggleButton} from "@/src/features/theme";
+import {useThemeStore} from "@/src/store/useThemeStore";
 
 export default function Home() {
   const bodyLayoutRef = useRef<HTMLDivElement>(null);
@@ -69,6 +71,7 @@ export default function Home() {
   };
 
   const activeFilePath = useEditorStore((state) => state.activeFilePath);
+  const theme = useThemeStore((state) => state.theme);
 
   return (
     <S.Main>
@@ -90,37 +93,40 @@ export default function Home() {
               Zip 다운로드
             </S.TopBarButton>
           </S.TopBarFileActions>
-          {activeFilePath && (
-            <S.TopBarEditorActions>
-              <S.TopBarButton
-                type="button"
-                aria-label="Undo"
-                title="Undo / Ctrl+Z"
-                onClick={() => undoActiveFileMonaco()}
-                disabled={fileTree.length === 0 || isLoading}
-              >
-                <UndoIcon />
-              </S.TopBarButton>
-              <S.TopBarButton
-                type="button"
-                aria-label="Redo"
-                title="Redo / Ctrl+Y"
-                onClick={() => redoActiveFileMonaco()}
-                disabled={fileTree.length === 0 || isLoading}
-              >
-                <RedoIcon />
-              </S.TopBarButton>
-              <S.TopBarButton
-                type="button"
-                aria-label="Save"
-                title="Save / Ctrl+S"
-                onClick={() => flushActiveFileMonacoToZustand()}
-                disabled={fileTree.length === 0 || isLoading}
-              >
-                <SaveIcon />
-              </S.TopBarButton>
-            </S.TopBarEditorActions>
-          )}
+          <S.TopBarEditorActionThemeToggleWrapper>
+            {activeFilePath && (
+              <S.TopBarEditorActions>
+                <S.TopBarButton
+                  type="button"
+                  aria-label="Undo"
+                  title="Undo / Ctrl+Z"
+                  onClick={() => undoActiveFileMonaco()}
+                  disabled={fileTree.length === 0 || isLoading}
+                >
+                  <UndoIcon />
+                </S.TopBarButton>
+                <S.TopBarButton
+                  type="button"
+                  aria-label="Redo"
+                  title="Redo / Ctrl+Y"
+                  onClick={() => redoActiveFileMonaco()}
+                  disabled={fileTree.length === 0 || isLoading}
+                >
+                  <RedoIcon />
+                </S.TopBarButton>
+                <S.TopBarButton
+                  type="button"
+                  aria-label="Save"
+                  title="Save / Ctrl+S"
+                  onClick={() => flushActiveFileMonacoToZustand()}
+                  disabled={fileTree.length === 0 || isLoading}
+                >
+                  <SaveIcon />
+                </S.TopBarButton>
+              </S.TopBarEditorActions>
+            )}
+            <ThemeToggleButton />
+          </S.TopBarEditorActionThemeToggleWrapper>
         </S.TopBarActionContainer>
       </S.TopBar>
 
