@@ -70,7 +70,7 @@ export default function Home() {
     await handleDownloadZip();
   };
 
-  const activeFilePath = useEditorStore((state) => state.activeFilePath);
+  const selectedFileFolderPath = useEditorStore((state) => state.selectedFileFolderPath);
   const theme = useThemeStore((state) => state.theme);
 
   return (
@@ -95,7 +95,7 @@ export default function Home() {
             </S.TopBarButton>
           </S.TopBarFileActions>
           <S.TopBarEditorActionThemeToggleWrapper>
-            {activeFilePath && (
+            {selectedFileFolderPath && (
               <S.TopBarEditorActions>
                 <S.TopBarButton
                   $themeMode={theme}

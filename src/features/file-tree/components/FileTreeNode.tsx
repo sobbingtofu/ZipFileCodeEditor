@@ -4,12 +4,12 @@ import {KeyboardEvent, memo, useEffect, useRef, useState} from "react";
 import * as S from "@/src/features/file-tree/components/FileTree.styles";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {useFileStore} from "@/src/store/useFileStore";
-import {isAncestorFolderPath, normalizePath} from "../../zip-handler";
+import {isAncestorFolderPath} from "@/src/features/zip-handler";
 
 interface FileTreeNodeProps {
   node: FileNode;
   depth: number;
-  activeFilePath: string | null;
+  selectedFileFolderPath: string | null;
   theme: "light" | "dark";
   collapseAllSignal: number;
   renamingTargetPath: string | null;
@@ -22,7 +22,7 @@ interface FileTreeNodeProps {
 const FileTreeNode = memo(function FileTreeNode({
   node,
   depth,
-  activeFilePath,
+  selectedFileFolderPath,
   theme,
   collapseAllSignal,
   renamingTargetPath,
@@ -38,10 +38,11 @@ const FileTreeNode = memo(function FileTreeNode({
   const revealSignal = useFileStore((state) => state.showSignal);
 
   const isFolder = node.type === "folder";
-  const isActive = !isFolder && node.path === activeFilePath;
-  const isRenaming = !isFolder && node.path === renamingTargetPath;
+  const isActive = node.path === selectedFileFolderPath;
+  const isRenaming = node.path === renamingTargetPath;
 
   const openFileTab = useEditorStore((state) => state.openFileTab);
+  const setActiveFilePath = useEditorStore((state) => state.setActiveFilePath);
 
   useEffect(() => {
     if (collapseAllSignal === 0) {
@@ -75,11 +76,16 @@ const FileTreeNode = memo(function FileTreeNode({
   }, [isRenaming]);
 
   const handleClickNode = () => {
-    if (isFolder) {
-      setIsExpanded((prev) => !prev);
+    if (isRenaming) {
       return;
     }
-    console.log("Open file:", node.path);
+
+    if (isFolder) {
+      setIsExpanded((prev) => !prev);
+      setActiveFilePath(node.path);
+      return;
+    }
+
     openFileTab(node.path);
   };
 
@@ -144,7 +150,7 @@ const FileTreeNode = memo(function FileTreeNode({
             key={childNode.id}
             node={childNode}
             depth={depth + 1}
-            activeFilePath={activeFilePath}
+            selectedFileFolderPath={selectedFileFolderPath}
             theme={theme}
             collapseAllSignal={collapseAllSignal}
             renamingTargetPath={renamingTargetPath}

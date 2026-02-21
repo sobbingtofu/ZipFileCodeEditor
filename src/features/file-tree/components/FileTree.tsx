@@ -16,7 +16,7 @@ import {useRenameFile} from "../hooks/useRenameFile";
 
 function FileTree() {
   const fileTree = useFileStore((state) => state.fileTree);
-  const activeFilePath = useEditorStore((state) => state.activeFilePath);
+  const selectedFileFolderPath = useEditorStore((state) => state.selectedFileFolderPath);
   const hasNodes = useMemo(() => fileTree.length > 0, [fileTree]);
   const theme = useThemeStore((state) => state.theme);
   const treeScrollAreaRef = useRef<HTMLDivElement | null>(null);
@@ -39,7 +39,7 @@ function FileTree() {
   } = useRenameFile({
     treeScrollAreaRef,
     fileTree,
-    activeFilePath,
+    selectedFileFolderPath,
     onInvalidRenameName: () => {
       setTreeErrMsg("파일 이름에는 특수문자 /와 \\를 사용할 수 없습니다.");
       setIsTreeAlertOpen(true);
@@ -63,7 +63,7 @@ function FileTree() {
     }
   };
 
-  const handleCloseZipAlert = () => {
+  const handleCloseTreeAlert = () => {
     setIsTreeAlertOpen(false);
     setTreeErrMsg("");
   };
@@ -167,7 +167,7 @@ function FileTree() {
               key={node.id}
               node={node}
               depth={0}
-              activeFilePath={activeFilePath}
+              selectedFileFolderPath={selectedFileFolderPath}
               theme={theme}
               collapseAllSignal={collapseAllSignal}
               renamingTargetPath={renamingTargetPath}
@@ -179,7 +179,7 @@ function FileTree() {
           ))}
         </S.TreeScrollArea>
       )}
-      <CustomModal isOpen={isTreeAlertOpen} onClose={handleCloseZipAlert} message={treeErrMsg} />
+      <CustomModal isOpen={isTreeAlertOpen} onClose={handleCloseTreeAlert} message={treeErrMsg} />
     </S.TreeContainer>
   );
 }

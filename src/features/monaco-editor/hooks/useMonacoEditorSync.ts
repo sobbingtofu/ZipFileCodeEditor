@@ -8,7 +8,7 @@ import {getLanguageByFilePath} from "../logic/editorLogics";
 import {ThemeMode, useThemeStore} from "@/src/store/useThemeStore";
 
 interface UseMonacoEditorSyncProps {
-  activeFilePath: string | null;
+  editorActiveFilePath: string | null;
   activeFile: FileNode | null;
   onFlushAllMonacoToZustandChange: (flushAllMonacoToZustand: () => void) => void;
   onFlushActiveFileMonacoToZustandChange: (flushActiveFileMonacoToZustand: () => void) => void;
@@ -26,7 +26,7 @@ interface UseMonacoEditorSyncResult {
 }
 
 function useMonacoEditorSync({
-  activeFilePath,
+  editorActiveFilePath: selectedFileFolderPath,
   activeFile,
   onFlushAllMonacoToZustandChange,
   autoSave = false,
@@ -313,7 +313,7 @@ function useMonacoEditorSync({
       return;
     }
 
-    if (!activeFilePath || !activeFile || activeFile.type !== "file" || activeFile.isBinary) {
+    if (!selectedFileFolderPath || !activeFile || activeFile.type !== "file" || activeFile.isBinary) {
       activeModelPathRef.current = null;
       editor.setModel(null);
       return;
@@ -323,7 +323,7 @@ function useMonacoEditorSync({
 
     editor.setModel(model);
     activeModelPathRef.current = activeFile.path;
-  }, [activeFilePath, activeFile, getOrCreateModel]);
+  }, [selectedFileFolderPath, activeFile, getOrCreateModel]);
 
   // Ctrl/Cmd + S 입력 시 브라우저 기본 저장 동작을 막고 현재 편집 내용을 Zustand에 반영
   useEffect(() => {
@@ -358,13 +358,13 @@ function useMonacoEditorSync({
         return;
       }
 
-      if (!activeFilePath) {
+      if (!selectedFileFolderPath) {
         return;
       }
 
       event.preventDefault();
       event.stopPropagation();
-      handleTabClose(activeFilePath);
+      handleTabClose(selectedFileFolderPath);
     };
 
     window.addEventListener("keydown", handleCloseShortcut);
@@ -372,7 +372,7 @@ function useMonacoEditorSync({
     return () => {
       window.removeEventListener("keydown", handleCloseShortcut);
     };
-  }, [activeFilePath, handleTabClose]);
+  }, [selectedFileFolderPath, handleTabClose]);
 
   return {
     monacoHostRef,

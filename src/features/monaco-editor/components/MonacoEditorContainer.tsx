@@ -1,7 +1,6 @@
 "use client";
 
-import {useMemo} from "react";
-import {useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {FileNode} from "@/src/types/fileType";
 import {findFileNodeInTree, useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
@@ -32,18 +31,33 @@ function MonacoEditorContainer({
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const theme = useThemeStore((state) => state.theme);
 
-  const activeFilePath = useEditorStore((state) => state.activeFilePath);
+  const selectedFileFolderPath = useEditorStore((state) => state.selectedFileFolderPath);
   const openedFilePaths = useEditorStore((state) => state.openedFilePaths);
   const setActiveFilePath = useEditorStore((state) => state.setActiveFilePath);
   const closeFileTab = useEditorStore((state) => state.closeFileTab);
+  const [editorActiveFilePath, setEditorActiveFilePath] = useState<string | null>(null);
+
+  // selectedFileFolderPath가 없으면 에디터 빈화면 처리
+  // selectedFileFolderPath가 바뀌면, 폴더가 아니라 파일일 때에만 에디터 업뎃
+  useEffect(() => {
+    if (!selectedFileFolderPath) {
+      setEditorActiveFilePath(null);
+      return;
+    }
+
+    const activeNode = findFileNodeInTree(fileTree, selectedFileFolderPath);
+    if (activeNode?.type === "file") {
+      setEditorActiveFilePath(selectedFileFolderPath);
+    }
+  }, [selectedFileFolderPath, fileTree]);
 
   const activeFile = useMemo<FileNode | null>(() => {
-    if (!activeFilePath) {
+    if (!editorActiveFilePath) {
       return null;
     }
 
-    return findFileNodeInTree(fileTree, activeFilePath);
-  }, [fileTree, activeFilePath]);
+    return findFileNodeInTree(fileTree, editorActiveFilePath);
+  }, [fileTree, editorActiveFilePath]);
 
   // 열린 파일 경로 목록과 파일 트리를 기반으로,
   // 각 열린 파일이 저장되지 않은 변경사항을 가지고 있는지 여부를 <파일의 path - 변경사항보유여부 boolean> 형태로 매핑한 객체 생성
@@ -73,7 +87,7 @@ function MonacoEditorContainer({
   };
 
   const {monacoHostRef, flushMonacoToZustandByFilePath, rollbackMonacoModelToZustandByFilePath} = useMonacoEditorSync({
-    activeFilePath,
+    editorActiveFilePath,
     activeFile,
     onFlushAllMonacoToZustandChange,
     onFlushActiveFileMonacoToZustandChange,
@@ -85,9 +99,6 @@ function MonacoEditorContainer({
   const handleTabClick = (filePath: string) => {
     triggerRevealFilePath(filePath);
 
-    if (filePath === activeFilePath) {
-      return;
-    }
     setActiveFilePath(filePath);
   };
 
@@ -96,22 +107,22 @@ function MonacoEditorContainer({
   };
 
   const handleSaveBeforeClose = () => {
-    if (!activeFilePath) {
+    if (!editorActiveFilePath) {
       return;
     }
 
-    flushMonacoToZustandByFilePath(activeFilePath);
-    closeFileTab(activeFilePath);
+    flushMonacoToZustandByFilePath(editorActiveFilePath);
+    closeFileTab(editorActiveFilePath);
     handleCloseSaveCheckModal();
   };
 
   const handleNotSaveBeforeClose = () => {
-    if (!activeFilePath) {
+    if (!editorActiveFilePath) {
       return;
     }
 
-    rollbackMonacoModelToZustandByFilePath(activeFilePath);
-    closeFileTab(activeFilePath);
+    rollbackMonacoModelToZustandByFilePath(editorActiveFilePath);
+    closeFileTab(editorActiveFilePath);
     handleCloseSaveCheckModal();
   };
 
@@ -121,7 +132,7 @@ function MonacoEditorContainer({
         {openedFilePaths.map((openedPath) => (
           <S.TabDiv
             key={openedPath}
-            $isActive={openedPath === activeFilePath}
+            $isActive={openedPath === editorActiveFilePath}
             $themeMode={theme}
             onClick={() => handleTabClick(openedPath)}
           >
@@ -141,15 +152,15 @@ function MonacoEditorContainer({
           </S.TabDiv>
         ))}
       </S.TabContainer>
-      {activeFilePath && (
+      {editorActiveFilePath && (
         <S.PathNameIndicatorBar $themeMode={theme}>
-          <span>{activeFilePath.replace(/\\/g, "/").replace(/\//g, " > ")}</span>
+          <span>{editorActiveFilePath.replace(/\\/g, "/").replace(/\//g, " > ")}</span>
         </S.PathNameIndicatorBar>
       )}
       <S.EditorBody>
-        {!activeFilePath && <S.EmptyState $themeMode={theme}>왼쪽 파일 트리에서 파일을 선택하세요.</S.EmptyState>}
+        {!editorActiveFilePath && <S.EmptyState $themeMode={theme}>왼쪽 파일 트리에서 파일을 선택하세요.</S.EmptyState>}
 
-        {activeFilePath && activeFile?.isBinary && (
+        {editorActiveFilePath && activeFile?.isBinary && (
           <S.ImageViewer>
             <S.ImageViewport>
               <Image
@@ -166,7 +177,7 @@ function MonacoEditorContainer({
 
         <S.MonacoHost
           ref={monacoHostRef}
-          style={{display: activeFile?.isBinary || !activeFilePath ? "none" : "block"}}
+          style={{display: activeFile?.isBinary || !editorActiveFilePath ? "none" : "block"}}
         />
       </S.EditorBody>
       <CustomModal

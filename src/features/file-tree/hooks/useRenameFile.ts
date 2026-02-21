@@ -8,11 +8,11 @@ import {useEditorStore} from "@/src/store/useEditorStore";
 interface UseRenameFileProps {
   treeScrollAreaRef: RefObject<HTMLDivElement | null>;
   fileTree: FileNode[];
-  activeFilePath: string | null;
+  selectedFileFolderPath: string | null;
   onInvalidRenameName: () => void;
 }
 
-function useRenameFile({treeScrollAreaRef, fileTree, activeFilePath, onInvalidRenameName}: UseRenameFileProps) {
+function useRenameFile({treeScrollAreaRef, fileTree, selectedFileFolderPath, onInvalidRenameName}: UseRenameFileProps) {
   // 이름 변경 대상 파일의 경로 관리용 상태. null이면 이름 변경 모드가 아님을 의미
   const [renamingTargetPath, setRenamingTargetPath] = useState<string | null>(null);
 
@@ -109,7 +109,7 @@ function useRenameFile({treeScrollAreaRef, fileTree, activeFilePath, onInvalidRe
   ]);
 
   const handleRenameBtnClick = () => {
-    if (!activeFilePath) {
+    if (!selectedFileFolderPath) {
       return;
     }
 
@@ -119,16 +119,16 @@ function useRenameFile({treeScrollAreaRef, fileTree, activeFilePath, onInvalidRe
       return;
     }
 
-    const activeNode = findNodeByPath(fileTree, activeFilePath);
+    const activeNode = findNodeByPath(fileTree, selectedFileFolderPath);
 
-    if (!activeNode || activeNode.type !== "file") {
+    if (!activeNode) {
       return;
     }
 
-    triggerShowInTreeTargetPath(activeFilePath);
-    scrollToRenamingFile(activeFilePath);
+    triggerShowInTreeTargetPath(selectedFileFolderPath);
+    scrollToRenamingFile(selectedFileFolderPath);
 
-    setRenamingTargetPath(activeFilePath);
+    setRenamingTargetPath(selectedFileFolderPath);
     setRenameInputValue(activeNode.name);
   };
 

@@ -1,7 +1,8 @@
 import {create} from "zustand";
+import {replacePathPrefix} from "@/src/features/file-tree";
 
 interface EditorStoreState {
-  activeFilePath: string | null;
+  selectedFileFolderPath: string | null;
   openedFilePaths: string[];
   openFileTab: (filePath: string) => void;
   closeFileTab: (filePath: string) => void;
@@ -11,7 +12,7 @@ interface EditorStoreState {
 }
 
 export const useEditorStore = create<EditorStoreState>((set) => ({
-  activeFilePath: null,
+  selectedFileFolderPath: null,
   openedFilePaths: [],
 
   openFileTab: (filePath) =>
@@ -19,7 +20,7 @@ export const useEditorStore = create<EditorStoreState>((set) => ({
       const isAlreadyOpened = state.openedFilePaths.includes(filePath);
       return {
         openedFilePaths: isAlreadyOpened ? state.openedFilePaths : [...state.openedFilePaths, filePath],
-        activeFilePath: filePath,
+        selectedFileFolderPath: filePath,
       };
     }),
 
@@ -27,7 +28,7 @@ export const useEditorStore = create<EditorStoreState>((set) => ({
     set((state) => {
       const nextOpenedFilePaths = state.openedFilePaths.filter((openedPath) => openedPath !== filePath);
 
-      if (state.activeFilePath !== filePath) {
+      if (state.selectedFileFolderPath !== filePath) {
         return {openedFilePaths: nextOpenedFilePaths};
       }
 
@@ -36,21 +37,27 @@ export const useEditorStore = create<EditorStoreState>((set) => ({
 
       return {
         openedFilePaths: nextOpenedFilePaths,
-        activeFilePath: nextActivePath,
+        selectedFileFolderPath: nextActivePath,
       };
     }),
 
-  setActiveFilePath: (filePath) => set({activeFilePath: filePath}),
+  setActiveFilePath: (filePath) => set({selectedFileFolderPath: filePath}),
 
   replaceOpenedFilePath: (previousPath, nextPath) =>
-    set((state) => ({
-      openedFilePaths: state.openedFilePaths.map((openedPath) => (openedPath === previousPath ? nextPath : openedPath)),
-      activeFilePath: state.activeFilePath === previousPath ? nextPath : state.activeFilePath,
-    })),
+    set((state) => {
+      const getNewPathName = (path: string): string => replacePathPrefix(path, previousPath, nextPath);
+
+      return {
+        openedFilePaths: state.openedFilePaths.map(getNewPathName),
+        selectedFileFolderPath: state.selectedFileFolderPath
+          ? getNewPathName(state.selectedFileFolderPath)
+          : state.selectedFileFolderPath,
+      };
+    }),
 
   resetEditorState: () =>
     set({
-      activeFilePath: null,
+      selectedFileFolderPath: null,
       openedFilePaths: [],
     }),
 }));
