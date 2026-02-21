@@ -4,7 +4,7 @@ import {useCallback, useRef, useState} from "react";
 import {useFileStore} from "@/src/store/useFileStore";
 import {FileTree, useHandleTreeContainerWidth} from "@/src/features/file-tree";
 import * as S from "@/app/page.styles";
-import {useHandleZipDownload, useHandleZipUpload} from "@/src/features/zip-handler";
+import {useHandleZipDownload, useHandleZipUpload, useSampleZipDownload} from "@/src/features/zip-handler";
 import {MonacoEditorContainer} from "@/src/features/monaco-editor";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useEditorStore} from "@/src/store/useEditorStore";
@@ -15,7 +15,10 @@ import {useThemeStore} from "@/src/store/useThemeStore";
 
 export default function Home() {
   const bodyLayoutRef = useRef<HTMLDivElement>(null);
+
   const [isUnsavedAlertOpen, setIsUnsavedAlertOpen] = useState(false);
+  const [isSampleZipDownloadConfirmOpen, setIsSampleZipDownloadConfirmOpen] = useState(false);
+
   const [flushAllMonacoToZustand, setFlushAllMonacoToZustand] = useState<() => void>(() => () => {});
   const [flushActiveFileMonacoToZustand, setFlushActiveFileMonacoToZustand] = useState<() => void>(() => () => {});
   const [undoActiveFileMonaco, setUndoActiveFileMonaco] = useState<() => void>(() => () => {});
@@ -29,7 +32,9 @@ export default function Home() {
   const {handleZipFileInputChange} = useHandleZipUpload();
 
   const hasUnsavedChanges = useFileStore((state) => state.hasUnsavedChanges);
+
   const handleDownloadZip = useHandleZipDownload();
+  const handleDownloadSampleZip = useSampleZipDownload();
 
   const handleFlushAllMonacoToZustandChange = useCallback((flushAll: () => void) => {
     setFlushAllMonacoToZustand(() => flushAll);
@@ -74,6 +79,14 @@ export default function Home() {
   const selectedFileFolderPath = useEditorStore((state) => state.selectedFileFolderPath);
   const theme = useThemeStore((state) => state.theme);
 
+  const handleCloseSampleZipDownloadModal = () => {
+    setIsSampleZipDownloadConfirmOpen(false);
+  };
+
+  const handleClickSampleZipDownload = () => {
+    handleDownloadSampleZip();
+  };
+
   return (
     <S.Main $themeMode={theme}>
       <S.TopBar $themeMode={theme}>
@@ -93,6 +106,17 @@ export default function Home() {
               aria-label="Download-Zip"
             >
               Zip 다운로드
+            </S.TopBarButton>
+
+            <div style={{width: "12px"}}></div>
+            <S.TopBarButton
+              $themeMode={theme}
+              type="button"
+              onClick={() => setIsSampleZipDownloadConfirmOpen(true)}
+              aria-label="Download-Sample-Zip"
+              title="다운받은 샘플을 업로드한 후 기능을 사용해보세요!"
+            >
+              샘플 Zip 다운로드
             </S.TopBarButton>
           </S.TopBarFileActions>
           <S.TopBarEditorActionThemeToggleWrapper>
@@ -161,6 +185,16 @@ export default function Home() {
           {btnName: "저장하지 않고 다운로드", btnFunc: handleDownloadWithoutSave},
           {btnName: "닫기", btnFunc: handleCloseUnsavedModal},
         ]}
+      />
+      <CustomModal
+        modalType="confirm"
+        isOpen={isSampleZipDownloadConfirmOpen}
+        onClose={handleCloseSampleZipDownloadModal}
+        message="코드베이스 형태의 샘플 Zip 파일을 다운로드 받으시겠습니까?"
+        onConfirm={() => {
+          handleCloseSampleZipDownloadModal();
+          handleClickSampleZipDownload();
+        }}
       />
       <Loader />
     </S.Main>

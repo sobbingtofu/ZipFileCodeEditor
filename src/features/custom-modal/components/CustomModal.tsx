@@ -11,14 +11,34 @@ type ModalButtonInfo = {
   btnFunc: () => void;
 };
 
-type CustomModalProps = {
-  modalType?: "alert" | "confirm" | "multiBtns";
+type AlertModalProps = {
+  modalType?: "alert";
   isOpen: boolean;
   onClose: () => void;
   message?: string;
-  onConfirm?: () => void;
-  btnInfo?: ModalButtonInfo[];
+  onConfirm?: never;
+  btnInfo?: never;
 };
+
+type ConfirmModalProps = {
+  modalType: "confirm";
+  isOpen: boolean;
+  onClose: () => void;
+  message?: string;
+  onConfirm: () => void;
+  btnInfo?: never;
+};
+
+type MultiBtnsModalProps = {
+  modalType: "multiBtns";
+  isOpen: boolean;
+  onClose: () => void;
+  message?: string;
+  btnInfo: ModalButtonInfo[];
+  onConfirm?: never;
+};
+
+type CustomModalProps = AlertModalProps | ConfirmModalProps | MultiBtnsModalProps;
 
 export function CustomModal({
   modalType = "alert",
