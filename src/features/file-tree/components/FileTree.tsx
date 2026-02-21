@@ -22,6 +22,7 @@ function FileTree() {
   const [isHovering, setIsHovering] = useState(false);
   const [isZipAlertOpen, setIsZipAlertOpen] = useState(false);
   const [uploadErrMsg, setUploadErrMsg] = useState("");
+  const [collapseAllSignal, setCollapseAllSignal] = useState(0);
 
   const {handleZipFileDrop, handleZipFileInputChange} = useHandleZipUpload();
 
@@ -47,11 +48,20 @@ function FileTree() {
     setUploadErrMsg("");
   };
 
+  const handleCollapseAllFolders = () => {
+    setCollapseAllSignal((prev) => prev + 1);
+  };
+
   return (
     <S.TreeContainer $themeMode={theme}>
       <S.TreeHeader $themeMode={theme}>
         <h3>파일 탐색기</h3>
-        <S.CollapseAllFolderButton $themeMode={theme} aria-label="Collapse All" title="Collapse All Folders">
+        <S.CollapseAllFolderButton
+          $themeMode={theme}
+          aria-label="Collapse All"
+          title="Collapse All Folders"
+          onClick={handleCollapseAllFolders}
+        >
           <CollapseIcon />
         </S.CollapseAllFolderButton>
       </S.TreeHeader>
@@ -104,7 +114,14 @@ function FileTree() {
           }}
         >
           {fileTree.map((node) => (
-            <FileTreeNode key={node.id} node={node} depth={0} activeFilePath={activeFilePath} theme={theme} />
+            <FileTreeNode
+              key={node.id}
+              node={node}
+              depth={0}
+              activeFilePath={activeFilePath}
+              theme={theme}
+              collapseAllSignal={collapseAllSignal}
+            />
           ))}
         </S.TreeScrollArea>
       )}

@@ -1,5 +1,5 @@
 import {FileNode} from "@/src/types/fileType";
-import {memo, useState} from "react";
+import {memo, useEffect, useState} from "react";
 
 import * as S from "@/src/features/file-tree/components/FileTree.styles";
 import {useEditorStore} from "@/src/store/useEditorStore";
@@ -9,15 +9,33 @@ interface FileTreeNodeProps {
   depth: number;
   activeFilePath: string | null;
   theme: "light" | "dark";
+  collapseAllSignal: number;
 }
 
-const FileTreeNode = memo(function FileTreeNode({node, depth, activeFilePath, theme}: FileTreeNodeProps) {
+const FileTreeNode = memo(function FileTreeNode({
+  node,
+  depth,
+  activeFilePath,
+  theme,
+  collapseAllSignal,
+}: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const isFolder = node.type === "folder";
   const isActive = !isFolder && node.path === activeFilePath;
 
   const openFileTab = useEditorStore((state) => state.openFileTab);
+
+  useEffect(() => {
+    if (collapseAllSignal === 0) {
+      return;
+    }
+
+    if (isFolder) {
+      setIsExpanded(false);
+    }
+  }, [collapseAllSignal, isFolder]);
+
   const handleSelectFile = (selectedFileNode: FileNode) => {
     openFileTab(selectedFileNode.path);
   };
@@ -47,6 +65,7 @@ const FileTreeNode = memo(function FileTreeNode({node, depth, activeFilePath, th
             depth={depth + 1}
             activeFilePath={activeFilePath}
             theme={theme}
+            collapseAllSignal={collapseAllSignal}
           />
         ))}
     </>
