@@ -7,6 +7,7 @@ import {useEditorStore} from "@/src/store/useEditorStore";
 import {appendFileNodeToTargetFolder, appendFolderNodeToTargetFolder, getParentPath} from "../logic/addFileFolderLogic";
 import {getNodeByPathFromIndex} from "../logic/treeHandlingLogic";
 import {getIsEditableTextFile} from "../../zip-handler";
+import useScrollTreeToTargetFile from "./useScrollTreeToTargetFile";
 
 interface UseAddFileFolderProps {
   fileTree: FileNode[];
@@ -15,6 +16,7 @@ interface UseAddFileFolderProps {
   onOverlapFileName: () => void;
   onInvalidAddFolderName: () => void;
   onOverlapFolderName: () => void;
+  treeScrollAreaRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function useAddFileFolder({
@@ -24,12 +26,15 @@ function useAddFileFolder({
   onOverlapFileName,
   onInvalidAddFolderName,
   onOverlapFolderName,
+  treeScrollAreaRef,
 }: UseAddFileFolderProps) {
   const setFileTree = useFileStore((state) => state.setFileTree);
   const fileTreeIndex = useFileStore((state) => state.fileTreeIndex);
   const triggerShowInTreeTargetPath = useFileStore((state) => state.triggerShowInTreeTargetPath);
   const openFileTab = useEditorStore((state) => state.openFileTab);
   const setActiveFilePath = useEditorStore((state) => state.setActiveFilePath);
+
+  const {scrollToTargetFile} = useScrollTreeToTargetFile(treeScrollAreaRef);
 
   const [pendingAddTargetFolderPath, setpendingAddTargetFolderPath] = useState<string | null | undefined>(undefined);
   const [pendingAddInputValue, setPendingAddInputValue] = useState("");
@@ -75,6 +80,7 @@ function useAddFileFolder({
 
     if (targetFolderPath) {
       triggerShowInTreeTargetPath(targetFolderPath);
+      scrollToTargetFile(targetFolderPath);
     }
 
     setpendingAddTargetFolderPath(targetFolderPath);
@@ -87,6 +93,7 @@ function useAddFileFolder({
 
     if (targetFolderPath) {
       triggerShowInTreeTargetPath(targetFolderPath);
+      scrollToTargetFile(targetFolderPath);
     }
 
     setPendingAddFolderTargetFolderPath(targetFolderPath);

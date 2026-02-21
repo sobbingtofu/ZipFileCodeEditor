@@ -96,6 +96,7 @@ function FileTree() {
     handleAddFolderCancel,
     handleAddFolderBtnClick,
   } = useAddFileFolder({
+    treeScrollAreaRef,
     fileTree,
     selectedFileFolderPath,
     onInvalidAddFileName: () => {

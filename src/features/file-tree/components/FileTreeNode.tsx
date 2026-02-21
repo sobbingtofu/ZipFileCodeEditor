@@ -56,7 +56,7 @@ const FileTreeNode = memo(function FileTreeNode({
   const addFileInputRef = useRef<HTMLInputElement | null>(null);
   const addFolderInputRef = useRef<HTMLInputElement | null>(null);
 
-  const revealTargetPath = useFileStore((state) => state.showInTreeTargetPath);
+  const showInTreeTargetPath = useFileStore((state) => state.showInTreeTargetPath);
   const revealSignal = useFileStore((state) => state.showSignal);
 
   const isFolder = node.type === "folder";
@@ -80,14 +80,14 @@ const FileTreeNode = memo(function FileTreeNode({
 
   // showInTreeTargetPath이 변경될 때마다, 해당 경로가 이 노드의 경로의 조상인지 검사 >> 조상인 경우 이 노드를 자동으로 확장하여 자식 노드가 보이도록 처리
   useEffect(() => {
-    if (!isFolder || revealSignal === 0 || !revealTargetPath) {
+    if (!isFolder || revealSignal === 0 || !showInTreeTargetPath) {
       return;
     }
 
-    if (isAncestorFolderPath(node.path, revealTargetPath)) {
+    if (node.path === showInTreeTargetPath || isAncestorFolderPath(node.path, showInTreeTargetPath)) {
       setIsExpanded(true);
     }
-  }, [isFolder, node.path, revealSignal, revealTargetPath]);
+  }, [isFolder, node.path, revealSignal, showInTreeTargetPath]);
 
   // isRenaming이 true가 되면 renameInputRef에 포커스 및 텍스트 선택 처리
   useEffect(() => {

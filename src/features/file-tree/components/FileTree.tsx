@@ -50,6 +50,7 @@ function FileTree() {
     handleAddFolderBtnClick,
   } = useAddFileFolder({
     fileTree,
+    treeScrollAreaRef,
     selectedFileFolderPath,
     onInvalidAddFileName: () => {
       setTreeErrMsg("파일 이름에는 특수문자 /와 \\를 사용할 수 없습니다.");
