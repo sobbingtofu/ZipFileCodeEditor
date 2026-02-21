@@ -7,7 +7,7 @@ import {useEditorStore} from "@/src/store/useEditorStore";
 
 import * as S from "./MonacoEditorContainer.styles";
 
-import {getTabName} from "../logic/editorLogics";
+import {getNextActivePathAfterClose, getTabName} from "@/src/features/monaco-editor";
 import {useMonacoEditorSync} from "@/src/features/monaco-editor";
 import Image from "next/image";
 import {CustomModal} from "@/src/features/custom-modal";
@@ -83,6 +83,10 @@ function MonacoEditorContainer({
       return;
     }
 
+    if (editorActiveFilePath === filePath) {
+      setEditorActiveFilePath(getNextActivePathAfterClose(openedFilePaths, filePath).nextActivePath);
+    }
+
     closeFileTab(filePath);
   };
 
@@ -111,6 +115,7 @@ function MonacoEditorContainer({
       return;
     }
 
+    setEditorActiveFilePath(getNextActivePathAfterClose(openedFilePaths, editorActiveFilePath).nextActivePath);
     flushMonacoToZustandByFilePath(editorActiveFilePath);
     closeFileTab(editorActiveFilePath);
     handleCloseSaveCheckModal();
@@ -121,6 +126,7 @@ function MonacoEditorContainer({
       return;
     }
 
+    setEditorActiveFilePath(getNextActivePathAfterClose(openedFilePaths, editorActiveFilePath).nextActivePath);
     rollbackMonacoModelToZustandByFilePath(editorActiveFilePath);
     closeFileTab(editorActiveFilePath);
     handleCloseSaveCheckModal();
@@ -142,7 +148,11 @@ function MonacoEditorContainer({
               <S.CloseButton
                 $themeMode={theme}
                 type="button"
-                onClick={() => {
+                onMouseDown={(event) => {
+                  event.stopPropagation();
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
                   handleTabClose(openedPath);
                 }}
               >

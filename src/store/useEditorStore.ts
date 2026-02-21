@@ -1,5 +1,6 @@
 import {create} from "zustand";
 import {replacePathPrefix} from "@/src/features/file-tree";
+import {getNextActivePathAfterClose} from "../features/monaco-editor";
 
 interface EditorStoreState {
   selectedFileFolderPath: string | null;
@@ -26,14 +27,11 @@ export const useEditorStore = create<EditorStoreState>((set) => ({
 
   closeFileTab: (filePath) =>
     set((state) => {
-      const nextOpenedFilePaths = state.openedFilePaths.filter((openedPath) => openedPath !== filePath);
+      const {nextOpenedFilePaths, nextActivePath} = getNextActivePathAfterClose(state.openedFilePaths, filePath);
 
       if (state.selectedFileFolderPath !== filePath) {
         return {openedFilePaths: nextOpenedFilePaths};
       }
-
-      const nextActivePath =
-        nextOpenedFilePaths.length > 0 ? nextOpenedFilePaths[nextOpenedFilePaths.length - 1] : null;
 
       return {
         openedFilePaths: nextOpenedFilePaths,
