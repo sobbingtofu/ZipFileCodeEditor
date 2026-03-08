@@ -1,6 +1,29 @@
 import {useFileStore} from "@/src/store/useFileStore";
 import {createZipBlobFromTree} from "../logic/zipService";
 
+const getBaseNameFromPath = (path: string): string => {
+  const normalizedPath = path.replace(/\\/g, "/");
+  return normalizedPath.split("/").pop() || "downloaded-file";
+};
+
+const createBlobFromDataUrl = (dataUrl: string): Blob | null => {
+  const dataUrlMatch = dataUrl.match(/^data:([^;,]+)?;base64,(.*)$/);
+  if (!dataUrlMatch) {
+    return null;
+  }
+
+  const mimeType = dataUrlMatch[1] || "application/octet-stream";
+  const base64Content = dataUrlMatch[2] || "";
+
+  const binaryString = atob(base64Content);
+  const byteArray = new Uint8Array(binaryString.length);
+  for (let index = 0; index < binaryString.length; index += 1) {
+    byteArray[index] = binaryString.charCodeAt(index);
+  }
+
+  return new Blob([byteArray], {type: mimeType});
+};
+
 function useHandleZipDownload() {
   const setIsLoading = useFileStore((state) => state.setIsLoading);
   const setLoadingType = useFileStore((state) => state.setLoadingType);
@@ -16,12 +39,28 @@ function useHandleZipDownload() {
         return;
       }
 
-      const zipBlob = await createZipBlobFromTree(latestTree);
-      const objectUrl = URL.createObjectURL(zipBlob);
+      if (latestTree.length === 0) {
+        return;
+      }
+
+      const shouldDownloadSingleFile = latestTree.length === 1;
+      const singleFileNode = shouldDownloadSingleFile ? latestTree[0] : null;
+
+      const downloadBlob = shouldDownloadSingleFile
+        ? singleFileNode?.isBinary
+          ? createBlobFromDataUrl(singleFileNode.content ?? "") || new Blob([], {type: "application/octet-stream"})
+          : new Blob([singleFileNode?.content ?? ""], {type: "text/plain;charset=utf-8"})
+        : await createZipBlobFromTree(latestTree);
+
+      const downloadFileName = shouldDownloadSingleFile
+        ? getBaseNameFromPath(singleFileNode?.path ?? "")
+        : "edited-project.zip";
+
+      const objectUrl = URL.createObjectURL(downloadBlob);
 
       const anchorElement = document.createElement("a");
       anchorElement.href = objectUrl;
-      anchorElement.download = "edited-project.zip";
+      anchorElement.download = downloadFileName;
       anchorElement.click();
 
       URL.revokeObjectURL(objectUrl);

@@ -42,7 +42,7 @@ const isBinaryImageFile = (filePath: string): boolean => {
   return [...IMAGE_EXTENSION_SET].some((extension) => lowerCasePath.endsWith(extension));
 };
 
-const EDITABLE_TEXT_EXTENSION_SET = new Set([
+export const EDITABLE_TEXT_EXTENSION_SET = new Set([
   ".txt",
   ".md",
   ".json",
@@ -91,7 +91,19 @@ const EDITABLE_TEXT_EXTENSION_SET = new Set([
   ".editorconfig",
 ]);
 
-const EDITABLE_TEXT_FILENAME_SET = new Set(["readme", "license", "dockerfile", "makefile", "jenkinsfile"]);
+export const UPLOADABLE_FILE_EXTENSIONS = [".zip", ...EDITABLE_TEXT_EXTENSION_SET].join(",");
+
+export const EDITABLE_TEXT_FILENAME_SET = new Set(["readme", "license", "dockerfile", "makefile", "jenkinsfile"]);
+
+/** 파일명이 편집 가능한 텍스트 확장자 목록에 포함되는지 검사 */
+export const getIsEditableTextExtensionFile = (fileName: string): boolean => {
+  const normalizedLowerCaseName = normalizePath(fileName).toLowerCase();
+  if (!normalizedLowerCaseName || normalizedLowerCaseName.endsWith("/")) {
+    return false;
+  }
+
+  return [...EDITABLE_TEXT_EXTENSION_SET].some((extension) => normalizedLowerCaseName.endsWith(extension));
+};
 
 /** 파일 경로가 Monaco Editor에서 편집 가능한 텍스트 기반 파일인지 판단 */
 export const getIsEditableTextFile = (filePath: string): boolean => {
@@ -263,6 +275,26 @@ export const parseZipFileToTree = async (zipFile: File): Promise<FileNode[]> => 
   }
 
   return sortTreeRecursively(rootNodes);
+};
+
+/** 단일 파일 업로드되는 경우 트리 노드 하나로 변환 */
+export const parseEditableTextFileToTree = async (textFile: File): Promise<FileNode[]> => {
+  const normalizedPath = normalizePath(textFile.name);
+  const fileName = normalizedPath.split("/").pop() ?? normalizedPath;
+  const content = await textFile.text();
+
+  const fileNode: FileNode = {
+    id: createNodeId(normalizedPath),
+    name: fileName,
+    type: "file",
+    path: normalizedPath,
+    content,
+    isEditableText: true,
+    isBinary: false,
+    haveUnsavedChange: false,
+  };
+
+  return [fileNode];
 };
 
 /** 데이터 URL에서 Base64 부분을 추출하는 함수 */

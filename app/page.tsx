@@ -4,7 +4,12 @@ import {useCallback, useRef, useState} from "react";
 import {useFileStore} from "@/src/store/useFileStore";
 import {FileTree, useHandleTreeContainerWidth} from "@/src/features/file-tree";
 import * as S from "@/app/page.styles";
-import {useHandleZipDownload, useHandleZipUpload, useSampleZipDownload} from "@/src/features/zip-handler";
+import {
+  UPLOADABLE_FILE_EXTENSIONS,
+  useHandleZipDownload,
+  useHandleZipUpload,
+  useSampleZipDownload,
+} from "@/src/features/zip-handler";
 import {MonacoEditorContainer} from "@/src/features/monaco-editor";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useEditorStore} from "@/src/store/useEditorStore";
@@ -94,9 +99,14 @@ export default function Home() {
         <S.TopBarActionContainer>
           <S.TopBarFileActions>
             <S.ZipUploadLabel $themeMode={theme} htmlFor="zip-upload-input" aria-label="Upload-Zip">
-              Zip 업로드
+              업로드
             </S.ZipUploadLabel>
-            <S.HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
+            <S.HiddenFileInput
+              id="zip-upload-input"
+              type="file"
+              accept={UPLOADABLE_FILE_EXTENSIONS}
+              onChange={handleZipFileInputChange}
+            />
 
             <S.TopBarButton
               $themeMode={theme}
@@ -105,11 +115,14 @@ export default function Home() {
               disabled={fileTree.length === 0 || isLoading}
               aria-label="Download-Zip"
             >
-              Zip 다운로드
+              다운로드
             </S.TopBarButton>
 
             <div style={{width: "12px"}}></div>
-            <S.TopBarButton
+            <p style={{fontSize: "12px"}}>
+              코드베이스 zip 파일 또는 개별 코드 파일을 업로드해 작업하고, 다운로드 받으세요.
+            </p>
+            {/* <S.TopBarButton
               $themeMode={theme}
               type="button"
               onClick={() => setIsSampleZipDownloadConfirmOpen(true)}
@@ -117,7 +130,7 @@ export default function Home() {
               title="다운받은 샘플을 업로드한 후 기능을 사용해보세요!"
             >
               샘플 Zip 다운로드
-            </S.TopBarButton>
+            </S.TopBarButton> */}
           </S.TopBarFileActions>
           <S.TopBarEditorActionThemeToggleWrapper>
             {selectedFileFolderPath && (

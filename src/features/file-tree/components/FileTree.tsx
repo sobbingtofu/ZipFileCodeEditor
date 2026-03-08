@@ -9,6 +9,7 @@ import {useFileStore} from "@/src/store/useFileStore";
 import {useEditorStore} from "@/src/store/useEditorStore";
 import {CustomModal} from "@/src/features/custom-modal";
 import {useHandleZipUpload} from "@/src/features/zip-handler";
+import {UPLOADABLE_FILE_EXTENSIONS} from "@/src/features/zip-handler";
 import {AddFileIcon, AddFolderIcon, CollapseIcon, DeleteIcon, RenameIcon, UploadIcon} from "@/src/common/icon";
 import {HiddenFileInput} from "@/app/page.styles";
 import {useThemeStore} from "@/src/store/useThemeStore";
@@ -97,7 +98,7 @@ function FileTree() {
       treeScrollAreaRef,
     });
 
-  // 트리에 ZIP 파일 드래그&드롭 추가 관련
+  // 트리에 파일 드래그&드롭 추가 관련
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
@@ -236,7 +237,12 @@ function FileTree() {
       </S.TreeHeader>
       {!hasNodes && (
         <>
-          <HiddenFileInput id="zip-upload-input" type="file" accept=".zip" onChange={handleZipFileInputChange} />
+          <HiddenFileInput
+            id="zip-upload-input"
+            type="file"
+            accept={UPLOADABLE_FILE_EXTENSIONS}
+            onChange={handleZipFileInputChange}
+          />
           <label htmlFor="zip-upload-input" style={{height: "100%", display: "flex", flexDirection: "column"}}>
             <S.EmptyTreeContainer
               $themeMode={theme}
@@ -259,8 +265,7 @@ function FileTree() {
                 <S.UploadGuide $themeMode={theme}>
                   <UploadIcon />
                   <p>여기를 클릭하거나 드래그&드롭을 통해</p>
-                  <p>Zip 파일을 업로드하면</p>
-                  <p>트리가 표시됩니다.</p>
+                  <p>Zip 또는 코드 파일을 업로드하세요.</p>
                 </S.UploadGuide>
               </S.EmptyMessageContainer>
             </S.EmptyTreeContainer>
