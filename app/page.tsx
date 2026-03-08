@@ -95,7 +95,7 @@ export default function Home() {
   return (
     <S.Main $themeMode={theme}>
       <S.TopBar $themeMode={theme}>
-        <S.TopBarTitle>Zip File Code Editor</S.TopBarTitle>
+        <S.TopBarTitle>Simple Code Editor</S.TopBarTitle>
         <S.TopBarActionContainer>
           <S.TopBarFileActions>
             <S.ZipUploadLabel $themeMode={theme} htmlFor="zip-upload-input" aria-label="Upload-Zip">
