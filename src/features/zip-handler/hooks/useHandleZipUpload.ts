@@ -1,5 +1,10 @@
 import {useFileStore} from "@/src/store/useFileStore";
-import {isZipFile, parseZipFileToTree} from "../logic/zipService";
+import {
+  getIsEditableTextExtensionFile,
+  isZipFile,
+  parseEditableTextFileToTree,
+  parseZipFileToTree,
+} from "../logic/zipService";
 import {useEditorStore} from "@/src/store/useEditorStore";
 
 import {ChangeEvent, DragEvent} from "react";
@@ -31,8 +36,11 @@ function useHandleZipUpload() {
   /** Zip 업로드 후 트리 초기화 & 첫 파일 자동 오픈 */
   const handleZipFileUpload = async (uploadedFile: File): Promise<{success: boolean; error: string | null}> => {
     try {
-      if (!isZipFile(uploadedFile)) {
-        const errorMsg = "업로드된 파일이 Zip 형식이 아닙니다.";
+      const isZipUpload = isZipFile(uploadedFile);
+      const isEditableTextExtensionFile = getIsEditableTextExtensionFile(uploadedFile.name);
+
+      if (!isZipUpload && !isEditableTextExtensionFile) {
+        const errorMsg = "업로드된 파일이 Zip 또는 지원하는 텍스트 확장자 형식이 아닙니다.";
         console.error(errorMsg);
         return {success: false, error: errorMsg};
       }
@@ -40,7 +48,9 @@ function useHandleZipUpload() {
       setIsLoading(true);
       setLoadingType("upload");
 
-      const parsedTree = await parseZipFileToTree(uploadedFile);
+      const parsedTree = isZipUpload
+        ? await parseZipFileToTree(uploadedFile)
+        : await parseEditableTextFileToTree(uploadedFile);
       setFileTree(parsedTree);
       resetEditorState();
 
